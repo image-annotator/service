@@ -5,7 +5,7 @@ import (
 
 	"github.com/go-chi/render"
 
-	"github.com/dhax/go-base/auth/jwt"
+	"gitlab.informatika.org/label-1-backend/base/auth/jwt"
 )
 
 // RequiresRole middleware restricts access to accounts having role parameter in their jwt claims.

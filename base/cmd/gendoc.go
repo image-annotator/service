@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/dhax/go-base/api"
 	"github.com/go-chi/docgen"
 	"github.com/spf13/cobra"
+	"gitlab.informatika.org/label-1-backend/base/api"
 )
 
 var (
@@ -50,7 +50,7 @@ func genRoutesDoc() {
 	api, _ := api.New(false)
 	fmt.Print("generating routes markdown file: ")
 	md := docgen.MarkdownRoutesDoc(api, docgen.MarkdownOpts{
-		ProjectPath: "github.com/dhax/go-base",
+		ProjectPath: "gitlab.informatika.org/label-1-backend/base",
 		Intro:       "GoBase REST API.",
 	})
 	if err := ioutil.WriteFile("routes.md", []byte(md), 0644); err != nil {

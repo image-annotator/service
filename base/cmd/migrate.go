@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/dhax/go-base/database/migrate"
+	"gitlab.informatika.org/label-1-backend/base/database/migrate"
 )
 
 var reset bool

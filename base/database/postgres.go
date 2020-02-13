@@ -3,19 +3,31 @@ package database
 
 import (
 	"log"
+	"os"
 
 	"github.com/spf13/viper"
 
 	"github.com/go-pg/pg"
+	"github.com/joho/godotenv"
 )
 
 // DBConn returns a postgres connection pool.
 func DBConn() (*pg.DB, error) {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	dbaddr := os.Getenv("DB_ADDR")
+	dbusr := os.Getenv("DB_USER")
+	dbpass := os.Getenv("DB_PASSWORD")
+	dbname := os.Getenv("DB_DATABASE")
+
 	viper.SetDefault("db_network", "tcp")
-	viper.SetDefault("db_addr", "localhost:5432")
-	viper.SetDefault("db_user", "postgres")
-	viper.SetDefault("db_password", "postgres")
-	viper.SetDefault("db_database", "gobase")
+	viper.SetDefault("db_addr", dbaddr)
+	viper.SetDefault("db_user", dbusr)
+	viper.SetDefault("db_password", dbpass)
+	viper.SetDefault("db_database", dbname)
 
 	db := pg.Connect(&pg.Options{
 		Network:  viper.GetString("db_network"),

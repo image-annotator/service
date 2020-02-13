@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/jwtauth"
 	"github.com/go-chi/render"
 
-	"github.com/dhax/go-base/logging"
+	"gitlab.informatika.org/label-1-backend/base/logging"
 )
 
 type ctxKey int

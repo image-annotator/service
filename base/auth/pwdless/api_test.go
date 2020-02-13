@@ -18,9 +18,9 @@ import (
 	"github.com/go-chi/jwtauth"
 	"github.com/spf13/viper"
 
-	"github.com/dhax/go-base/auth/jwt"
-	"github.com/dhax/go-base/email"
-	"github.com/dhax/go-base/logging"
+	"gitlab.informatika.org/label-1-backend/base/auth/jwt"
+	"gitlab.informatika.org/label-1-backend/base/email"
+	"gitlab.informatika.org/label-1-backend/base/logging"
 )
 
 var (

@@ -11,8 +11,8 @@ import (
 	"github.com/go-chi/render"
 	validation "github.com/go-ozzo/ozzo-validation"
 
-	"github.com/dhax/go-base/auth/jwt"
-	"github.com/dhax/go-base/auth/pwdless"
+	"gitlab.informatika.org/label-1-backend/base/auth/jwt"
+	"gitlab.informatika.org/label-1-backend/base/auth/pwdless"
 )
 
 // The list of error types returned from account resource.

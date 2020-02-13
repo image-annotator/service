@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/url"
 
-	"github.com/dhax/go-base/auth/jwt"
-	"github.com/dhax/go-base/auth/pwdless"
-	"github.com/dhax/go-base/models"
+	"gitlab.informatika.org/label-1-backend/base/auth/jwt"
+	"gitlab.informatika.org/label-1-backend/base/auth/pwdless"
+	"gitlab.informatika.org/label-1-backend/base/models"
 	"github.com/go-pg/pg"
 	"github.com/go-pg/pg/orm"
 	"github.com/go-pg/pg/urlvalues"

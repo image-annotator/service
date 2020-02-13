@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dhax/go-base/auth/jwt"
+	"gitlab.informatika.org/label-1-backend/base/auth/jwt"
 	"github.com/go-chi/jwtauth"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"

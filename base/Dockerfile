@@ -1,9 +1,9 @@
 FROM golang:alpine AS builder
 
 # Add source code
-ADD ./ /go/src/github.com/dhax/go-base/
+ADD ./ /go/src/gitlab.informatika.org/label-1-backend/base/
 
-RUN cd /go/src/github.com/dhax/go-base && \       
+RUN cd /go/src/gitlab.informatika.org/label-1-backend/base && \       
     go build && \
     mv ./go-base /usr/bin/go-base
 

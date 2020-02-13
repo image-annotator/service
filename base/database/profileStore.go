@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/dhax/go-base/models"
+	"gitlab.informatika.org/label-1-backend/base/models"
 	"github.com/go-pg/pg"
 )
 

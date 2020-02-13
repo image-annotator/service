@@ -47,7 +47,7 @@ The server is configured to serve a Progressive Web App (PWA) client from it's "
 If you want to access the api from a client that is serverd from a different host, including e.g. a development live reloading server, you must enable CORS on the server first by setting an environment variable ENABLE_CORS=true for the server to acceept api connections from clients serverd by other hosts.
 
 #### Demo client application
-For demonstration of the login and account management features this API serves a demo [Vue.js](https://vuejs.org) PWA. The client's source code can be found [here](https://github.com/dhax/go-base-vue).
+For demonstration of the login and account management features this API serves a demo [Vue.js](https://vuejs.org) PWA. The client's source code can be found [here](https://gitlab.informatika.org/label-1-backend/base-vue).
 
 If no valid email smtp settings are provided by environment variables, emails will be print to stdout showing the login token. Use one of the following bootstrapped users for login:
 - admin@boot.io (has access to admin panel)
@@ -85,7 +85,7 @@ ENABLE_CORS | bool | false | enable CORS requests
 
 Any feedback and pull requests are welcome and highly appreciated. Please open an issue first if you intend to send in a larger pull request or want to add additional features.
 
-[GoDoc]: https://godoc.org/github.com/dhax/go-base
-[GoDoc Badge]: https://godoc.org/github.com/dhax/go-base?status.svg
-[GoReportCard]: https://goreportcard.com/report/github.com/dhax/go-base
-[GoReportCard Badge]: https://goreportcard.com/badge/github.com/dhax/go-base
+[GoDoc]: https://godoc.org/gitlab.informatika.org/label-1-backend/base
+[GoDoc Badge]: https://godoc.org/gitlab.informatika.org/label-1-backend/base?status.svg
+[GoReportCard]: https://goreportcard.com/report/gitlab.informatika.org/label-1-backend/base
+[GoReportCard Badge]: https://goreportcard.com/badge/gitlab.informatika.org/label-1-backend/base

@@ -8,8 +8,8 @@ import (
 	"github.com/go-pg/pg"
 	"github.com/sirupsen/logrus"
 
-	"github.com/dhax/go-base/database"
-	"github.com/dhax/go-base/logging"
+	"gitlab.informatika.org/label-1-backend/base/database"
+	"gitlab.informatika.org/label-1-backend/base/logging"
 )
 
 type ctxKey int

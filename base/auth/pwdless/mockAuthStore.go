@@ -1,6 +1,6 @@
 package pwdless
 
-import "github.com/dhax/go-base/auth/jwt"
+import "gitlab.informatika.org/label-1-backend/base/auth/jwt"
 
 // MockAuthStore mocks AuthStorer interface.
 type MockAuthStore struct {

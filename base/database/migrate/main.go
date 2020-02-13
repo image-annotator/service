@@ -4,7 +4,7 @@ package migrate
 import (
 	"log"
 
-	"github.com/dhax/go-base/database"
+	"gitlab.informatika.org/label-1-backend/base/database"
 	"github.com/go-pg/migrations"
 	"github.com/go-pg/pg"
 )
