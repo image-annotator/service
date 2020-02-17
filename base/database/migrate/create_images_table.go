@@ -11,7 +11,7 @@ CREATE TABLE images (
 image_id serial NOT NULL,
 created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-image_path string NOT NULL UNIQUE,
+image_path text NOT NULL UNIQUE,
 PRIMARY KEY (image_id)
 )`
 

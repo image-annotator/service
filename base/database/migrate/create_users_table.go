@@ -7,14 +7,16 @@ import (
 )
 
 const users = `
+CREATE TYPE user_role AS ENUM ('admin', 'editor', 'labeller');
+
 CREATE TABLE users (
 user_id serial NOT NULL,
 created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-username string NOT NULL UNIQUE,
-passcode string NOT NULL,
-user_role ENUM (admin, editor, labeller),
-PRIMARY KEY (image_id)
+username text NOT NULL UNIQUE,
+passcode text NOT NULL,
+user_role user_role,
+PRIMARY KEY (user_id)
 )`
 
 func init() {
