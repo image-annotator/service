@@ -122,6 +122,12 @@
   version = "v1.0.0"
 
 [[projects]]
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  revision = "23d116af351c84513e1946b527c88823e476be13"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
   revision = "f55edac94c9bbba5d6182a4be46d86a2c9b5b50e"
@@ -286,6 +292,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "26021da594a0363979110b077422dcee80c79e28d7c22caadd95fe66b95149d4"
+  inputs-digest = "b74d4f7f1e4cd94dce4a121e77ae1d8a0351e20a13df7a664922005d8af6fae0"
   solver-name = "gps-cdcl"
   solver-version = 1
