@@ -32,15 +32,39 @@ identifier text,
 PRIMARY KEY (id)
 )`
 
+const imageTable = `
+CREATE TABLE images (
+image_id serial NOT NULL,
+created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+image_path VARCHAR (50) NOT NULL UNIQUE,
+PRIMARY KEY (image_id)
+)`
+
+const userTable = `
+CREATE TABLE users (
+user_id serial NOT NULL,
+created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+username VARCHAR (50) NOT NULL UNIQUE,
+passcode VARCHAR (50) NOT NULL,
+user_role VARCHAR (50) NOT NULL,
+PRIMARY KEY (user_id)
+)`
+
 func init() {
 	up := []string{
 		accountTable,
 		tokenTable,
+		userTable,
+		imageTable,
 	}
 
 	down := []string{
 		`DROP TABLE tokens`,
 		`DROP TABLE accounts`,
+		`DROP TABLE images`,
+		`DROP TABLE users`,
 	}
 
 	migrations.Register(func(db migrations.DB) error {
