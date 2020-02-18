@@ -33,7 +33,10 @@
 
 [[projects]]
   name = "github.com/go-chi/chi"
-  packages = [".","middleware"]
+  packages = [
+    ".",
+    "middleware"
+  ]
   revision = "2db61557f36b2f4caa20ce6ef50e98bac0f7fce5"
   version = "v4.0.3"
 
@@ -69,7 +72,10 @@
 
 [[projects]]
   name = "github.com/go-ozzo/ozzo-validation"
-  packages = [".","is"]
+  packages = [
+    ".",
+    "is"
+  ]
   revision = "199b55b36bc1af151e6eea487cc92ffa5b460b81"
   version = "v3.6.0"
 
@@ -81,7 +87,18 @@
 
 [[projects]]
   name = "github.com/go-pg/pg"
-  packages = [".","internal","internal/iszero","internal/parser","internal/pool","internal/struct_filter","internal/tag","orm","types","urlvalues"]
+  packages = [
+    ".",
+    "internal",
+    "internal/iszero",
+    "internal/parser",
+    "internal/pool",
+    "internal/struct_filter",
+    "internal/tag",
+    "orm",
+    "types",
+    "urlvalues"
+  ]
   revision = "1d957cb20f319c4a1e2db7d345824c12aefe5943"
   version = "v8.0.6"
 
@@ -99,7 +116,18 @@
 
 [[projects]]
   name = "github.com/hashicorp/hcl"
-  packages = [".","hcl/ast","hcl/parser","hcl/printer","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
+  packages = [
+    ".",
+    "hcl/ast",
+    "hcl/parser",
+    "hcl/printer",
+    "hcl/scanner",
+    "hcl/strconv",
+    "hcl/token",
+    "json/parser",
+    "json/scanner",
+    "json/token"
+  ]
   revision = "8cb6e5b959231cc1119e43259c4a608f9c51a241"
   version = "v1.0.0"
 
@@ -120,6 +148,12 @@
   packages = ["."]
   revision = "f5c5f50e6090ae76a29240b61ae2a90dd810112e"
   version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  revision = "23d116af351c84513e1946b527c88823e476be13"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/konsorten/go-windows-terminal-sequences"
@@ -177,7 +211,10 @@
 
 [[projects]]
   name = "github.com/spf13/afero"
-  packages = [".","mem"]
+  packages = [
+    ".",
+    "mem"
+  ]
   revision = "588a75ec4f32903aa5e39a2619ba6a4631e28424"
   version = "v1.2.2"
 
@@ -244,7 +281,10 @@
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["html","html/atom"]
+  packages = [
+    "html",
+    "html/atom"
+  ]
   revision = "16171245cfb220d5317888b716d69c1fb4e7992b"
 
 [[projects]]
@@ -255,7 +295,14 @@
 
 [[projects]]
   name = "golang.org/x/text"
-  packages = ["internal/gen","internal/triegen","internal/ucd","transform","unicode/cldr","unicode/norm"]
+  packages = [
+    "internal/gen",
+    "internal/triegen",
+    "internal/ucd",
+    "transform",
+    "unicode/cldr",
+    "unicode/norm"
+  ]
   revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
   version = "v0.3.2"
 
@@ -286,6 +333,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "26021da594a0363979110b077422dcee80c79e28d7c22caadd95fe66b95149d4"
+  inputs-digest = "b74d4f7f1e4cd94dce4a121e77ae1d8a0351e20a13df7a664922005d8af6fae0"
   solver-name = "gps-cdcl"
   solver-version = 1

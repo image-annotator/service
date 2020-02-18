@@ -1,0 +1,4 @@
+#!bin/bash
+
+docker start postgres
+docker start pgadmin4

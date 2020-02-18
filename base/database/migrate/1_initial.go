@@ -32,15 +32,92 @@ identifier text,
 PRIMARY KEY (id)
 )`
 
+const imageTable = `
+CREATE TABLE images (
+image_id serial NOT NULL,
+created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+image_path VARCHAR (50) NOT NULL UNIQUE,
+PRIMARY KEY (image_id)
+)`
+
+const userTable = `
+CREATE TABLE users (
+user_id serial NOT NULL,
+created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+username VARCHAR (50) NOT NULL UNIQUE,
+passcode VARCHAR (50) NOT NULL,
+user_role VARCHAR (50) NOT NULL,
+PRIMARY KEY (user_id)
+)`
+
+const accessControlTable = `
+CREATE TABLE access_controls(
+    image_id integer NOT NULL,
+    user_id integer NOT NULL,
+    timeout timestamp with time zone,
+    CONSTRAINT access_controls_pkey PRIMARY KEY (image_id),
+    CONSTRAINT fkimage_id FOREIGN KEY (image_id)
+        REFERENCES images (image_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT fkuser_id FOREIGN KEY (user_id)
+        REFERENCES users (user_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)`
+
+const contentTable = `
+CREATE TABLE contents
+(
+    label_contents_id serial NOT NULL,
+    content_name VARCHAR (50) NOT NULL,
+    PRIMARY KEY (label_contents_id)
+)`
+
+const labelTable = `
+CREATE TABLE labels
+(
+    label_id serial NOT NULL,
+    image_id integer NOT NULL,
+    label_x_center double precision,
+    label_y_center double precision,
+    label_width double precision,
+    label_height double precision,
+    label_content_id integer NOT NULL,
+    created_at timestamp with time zone,
+    updated_at timestamp with time zone,
+    PRIMARY KEY (label_id),
+    CONSTRAINT fkimage_id FOREIGN KEY (image_id)
+        REFERENCES images (image_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE,
+    CONSTRAINT fklabel_content_id FOREIGN KEY (label_content_id)
+        REFERENCES contents (label_contents_id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE CASCADE
+)`
+
 func init() {
 	up := []string{
 		accountTable,
 		tokenTable,
+		userTable,
+		imageTable,
+		accessControlTable,
+		contentTable,
+		labelTable,
 	}
 
 	down := []string{
-		`DROP TABLE tokens`,
-		`DROP TABLE accounts`,
+		`DROP TABLE IF EXISTS tokens`,
+		`DROP TABLE IF EXISTS accounts`,
+		`DROP TABLE IF EXISTS access_controls`,
+		`DROP TABLE IF EXISTS labels`,
+		`DROP TABLE IF EXISTS images`,
+		`DROP TABLE IF EXISTS users`,
+		`DROP TABLE IF EXISTS contents`,
 	}
 
 	migrations.Register(func(db migrations.DB) error {
