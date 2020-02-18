@@ -47,6 +47,7 @@ user_id serial NOT NULL,
 created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 username VARCHAR (50) NOT NULL UNIQUE,
+cookie VARCHAR (50) NOT NULL UNIQUE,
 passcode VARCHAR (50) NOT NULL,
 user_role VARCHAR (50) NOT NULL,
 PRIMARY KEY (user_id)

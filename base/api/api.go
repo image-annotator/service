@@ -6,19 +6,13 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
-	"gitlab.informatika.org/label-1-backend/base/api/admin"
-	"gitlab.informatika.org/label-1-backend/base/api/app"
-	"gitlab.informatika.org/label-1-backend/base/auth/jwt"
-	"gitlab.informatika.org/label-1-backend/base/auth/pwdless"
-	"gitlab.informatika.org/label-1-backend/base/database"
-	"gitlab.informatika.org/label-1-backend/base/email"
-	"gitlab.informatika.org/label-1-backend/base/logging"
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/go-chi/render"
+	"gitlab.informatika.org/label-1-backend/base/api/app"
+	"gitlab.informatika.org/label-1-backend/base/database"
+	"gitlab.informatika.org/label-1-backend/base/logging"
 )
 
 // New configures application resources and routes.
@@ -31,24 +25,24 @@ func New(enableCORS bool) (*chi.Mux, error) {
 		return nil, err
 	}
 
-	mailer, err := email.NewMailer()
-	if err != nil {
-		logger.WithField("module", "email").Error(err)
-		return nil, err
-	}
+	// mailer, err := email.NewMailer()
+	// if err != nil {
+	// 	logger.WithField("module", "email").Error(err)
+	// 	return nil, err
+	// }
 
-	authStore := database.NewAuthStore(db)
-	authResource, err := pwdless.NewResource(authStore, mailer)
-	if err != nil {
-		logger.WithField("module", "auth").Error(err)
-		return nil, err
-	}
+	// authStore := database.NewAuthStore(db)
+	// authResource, err := pwdless.NewResource(authStore, mailer)
+	// if err != nil {
+	// 	logger.WithField("module", "auth").Error(err)
+	// 	return nil, err
+	// }
 
-	adminAPI, err := admin.NewAPI(db)
-	if err != nil {
-		logger.WithField("module", "admin").Error(err)
-		return nil, err
-	}
+	// adminAPI, err := admin.NewAPI(db)
+	// if err != nil {
+	// 	logger.WithField("module", "admin").Error(err)
+	// 	return nil, err
+	// }
 
 	appAPI, err := app.NewAPI(db)
 	if err != nil {
@@ -57,11 +51,11 @@ func New(enableCORS bool) (*chi.Mux, error) {
 	}
 
 	r := chi.NewRouter()
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RequestID)
+	// r.Use(middleware.Recoverer)
+	// r.Use(middleware.RequestID)
 	// r.Use(middleware.RealIP)
-	r.Use(middleware.DefaultCompress)
-	r.Use(middleware.Timeout(15 * time.Second))
+	// r.Use(middleware.DefaultCompress)
+	// r.Use(middleware.Timeout(15 * time.Second))
 
 	r.Use(logging.NewStructuredLogger(logger))
 	r.Use(render.SetContentType(render.ContentTypeJSON))
@@ -71,11 +65,11 @@ func New(enableCORS bool) (*chi.Mux, error) {
 		r.Use(corsConfig().Handler)
 	}
 
-	r.Mount("/auth", authResource.Router())
+	// r.Mount("/auth", authResource.Router())
 	r.Group(func(r chi.Router) {
-		r.Use(authResource.TokenAuth.Verifier())
-		r.Use(jwt.Authenticator)
-		r.Mount("/admin", adminAPI.Router())
+		// r.Use(authResource.TokenAuth.Verifier())
+		// r.Use(jwt.Authenticator)
+		// r.Mount("/admin", adminAPI.Router())
 		r.Mount("/api", appAPI.Router())
 	})
 
