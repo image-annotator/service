@@ -45,6 +45,20 @@ func (s *ImageStore) Get(id int) (*models.Image, error) {
 	return &a, nil
 }
 
+// GetAll Image.
+func (s *ImageStore) GetAll() (*[]models.Image, error) {
+
+	var images []models.Image
+
+	err := s.db.Model(&images).Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &images, nil
+}
+
 // Update a Image.
 func (s *ImageStore) Update(id int, a *models.Image) (*models.Image, error) {
 	a.ImageID = id
@@ -60,13 +74,19 @@ func (s *ImageStore) Delete(id int) (*models.Image, error) {
 
 	model := models.Image{ImageID: id}
 
-	fmt.Println(model)
-
-	err := s.db.Delete(&model)
+	delImage, err := s.Get(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &model, nil
+	fmt.Println(model)
+
+	err = s.db.Delete(&model)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return delImage, nil
 }

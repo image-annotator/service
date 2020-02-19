@@ -85,11 +85,17 @@ func (s *UserStore) Delete(id int) (*usermgmt.User, error) {
 
 	fmt.Println(model)
 
-	err := s.db.Delete(&model)
+	delUser, err := s.Get(id)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &model, nil
+	err = s.db.Delete(&model)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return delUser, nil
 }
