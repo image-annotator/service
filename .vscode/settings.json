@@ -1,3 +1,5 @@
 {
-    "go.inferGopath": true
+    "go.inferGopath": true,
+    "go.useCodeSnippetsOnFunctionSuggest" : true,
+    "go.lintOnSave": "package"
 }
