@@ -1,0 +1,11 @@
+#!/bin/bash
+
+docker run --publish 5050:5050 \
+  --volume=pga4volume:/var/lib/pgadmin \
+  --env-file=postgres/pgadmin-env.list \
+  --name="pgadmin4" \
+  --hostname="pgadmin4" \
+  --network="pgnetwork" \
+  --detach \
+crunchydata/crunchy-pgadmin4:centos7-10.9-2.4.1
+
