@@ -50,6 +50,7 @@ type UserStore interface {
 	Get(id int) (*usermgmt.User, error)
 	Update(id int, a *usermgmt.User) (*usermgmt.User, error)
 	Delete(id int) (*usermgmt.User, error)
+	GetByLogin(a *usermgmt.User) (*usermgmt.User, error)
 	GetByCookie(cookie string) (*usermgmt.User, error)
 }
 
@@ -68,6 +69,7 @@ func NewUserResource(store UserStore) *UserResource {
 func (rs *UserResource) router() *chi.Mux {
 	r := chi.NewRouter()
 	r.Post("/register", rs.create)
+	r.Post("/login", rs.login)
 	r.Post("/validatesession", rs.getbycookie)
 	r.Get("/{user_id}", rs.get)
 	r.Put("/{user_id}", rs.update)
@@ -115,14 +117,30 @@ func (rs *UserResource) create(w http.ResponseWriter, r *http.Request) {
 func (rs *UserResource) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "user_id"))
 
-	user, err := rs.Store.Get(id)
+	respUser, err := rs.Store.Get(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	render.Respond(w, r, newUserResponse(user))
+	render.Respond(w, r, newUserResponse(respUser))
+}
+
+func (rs *UserResource) login(w http.ResponseWriter, r *http.Request) {
+
+	var user usermgmt.User
+
+	json.NewDecoder(r.Body).Decode(&user)
+
+	respUser, err := rs.Store.GetByLogin(&user)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, newUserResponse(respUser))
 }
 
 func (rs *UserResource) getbycookie(w http.ResponseWriter, r *http.Request) {

@@ -55,6 +55,19 @@ func (s *UserStore) GetByCookie(cookie string) (*usermgmt.User, error) {
 	return &a, err
 }
 
+//Get User by Username and Passcode
+func (s *UserStore) GetByLogin(a *usermgmt.User) (*usermgmt.User, error) {
+
+	model := new(usermgmt.User)
+
+	err := s.db.Model(model).Where("username = ?", a.Username).Where("passcode = ?", a.Passcode).Select()
+	if err != nil {
+		return nil, err
+	}
+
+	return model, err
+}
+
 // Update a User.
 func (s *UserStore) Update(id int, a *usermgmt.User) (*usermgmt.User, error) {
 	a.UserID = id
