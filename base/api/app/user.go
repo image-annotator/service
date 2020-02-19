@@ -67,13 +67,28 @@ func NewUserResource(store UserStore) *UserResource {
 }
 
 func (rs *UserResource) router() *chi.Mux {
+
 	r := chi.NewRouter()
-	r.Post("/register", rs.create)
+	authAdmin := []string{"admin"}
+	authSession := []string{"admin", "labeler"}
+
+	authAdminmw := rs.basicAuthFactory(authAdmin)
+	authSessionmw := rs.basicAuthFactory(authSession)
+
+	r.Group(func(r chi.Router) {
+		r.Use(authAdminmw)
+		r.Post("/register", rs.create)
+		r.Put("/{user_id}", rs.update)
+		r.Delete("/{user_id}", rs.delete)
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(authSessionmw)
+		r.Post("/validatesession", rs.getbycookie)
+	})
+
 	r.Post("/login", rs.login)
-	r.Post("/validatesession", rs.getbycookie)
 	r.Get("/{user_id}", rs.get)
-	r.Put("/{user_id}", rs.update)
-	r.Delete("/{user_id}", rs.delete)
 	return r
 }
 

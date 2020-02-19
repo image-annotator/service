@@ -101,6 +101,12 @@ CREATE TABLE labels
         ON DELETE CASCADE
 )`
 
+const insertAdmin = `
+INSERT INTO users(
+	username, cookie, passcode, user_role)
+	VALUES ('adminone', 'dangfinebuttocks', 'password', 'admin') ON CONFLICT DO NOTHING;
+`
+
 func init() {
 	up := []string{
 		accountTable,
@@ -110,6 +116,7 @@ func init() {
 		accessControlTable,
 		contentTable,
 		labelTable,
+		insertAdmin,
 	}
 
 	down := []string{

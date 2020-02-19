@@ -124,7 +124,7 @@ func (rs *ImageResource) download(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.ServeFile(w, r, image.Filename)
+	http.ServeFile(w, r, image.ImagePath)
 }
 
 func (rs *ImageResource) get(w http.ResponseWriter, r *http.Request) {
