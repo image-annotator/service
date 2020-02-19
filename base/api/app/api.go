@@ -24,6 +24,7 @@ type API struct {
 	Account *AccountResource
 	Profile *ProfileResource
 	User    *UserResource
+	Image   *ImageResource
 }
 
 // NewAPI configures and returns application API.
@@ -37,10 +38,14 @@ func NewAPI(db *pg.DB) (*API, error) {
 	userStore := database.NewUserStore(db)
 	user := NewUserResource(userStore)
 
+	imageStore := database.NewImageStore(db)
+	image := NewImageResource(imageStore)
+
 	api := &API{
 		Account: account,
 		Profile: profile,
 		User:    user,
+		Image:   image,
 	}
 	return api, nil
 }
@@ -52,6 +57,7 @@ func (a *API) Router() *chi.Mux {
 	r.Mount("/account", a.Account.router())
 	r.Mount("/profile", a.Profile.router())
 	r.Mount("/user", a.User.router())
+	r.Mount("/image", a.Image.router())
 
 	return r
 }
