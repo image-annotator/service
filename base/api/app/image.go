@@ -19,6 +19,7 @@ type ImageStore interface {
 	Get(id int) (*models.Image, error)
 	Update(id int, a *models.Image) (*models.Image, error)
 	Delete(id int) (*models.Image, error)
+	GetAll() (*[]models.Image, error)
 }
 
 // ImageResource implements image management handler.
@@ -33,29 +34,31 @@ func NewImageResource(store ImageStore) *ImageResource {
 	}
 }
 
-func (rs *ImageResource) router() *chi.Mux {
+func (rs *ImageResource) router(temp *UserResource) *chi.Mux {
 	r := chi.NewRouter()
-	r.Post("/upload", rs.upload)
-	// r.Post("/upload", rs.upload)
-	r.Get("/{image_id}", rs.get)
-	r.Get("/download/{image_id}", rs.download)
-	// r.Put("/{image_id}", rs.update)
-	// r.Delete("/{image_id}", rs.delete)
+
+	authAdmin := []string{"admin"}
+	authSession := []string{"admin", "labeler", "editor"}
+
+	authAdminmw := temp.basicAuthFactory(authAdmin)
+	authSessionmw := temp.basicAuthFactory(authSession)
+
+	r.Group(func(r chi.Router) {
+		r.Use(authAdminmw)
+		r.Delete("/{image_id}", rs.delete)
+		r.Post("/upload", rs.upload)
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(authSessionmw)
+		// r.Post("/upload", rs.upload)
+		r.Get("/{image_id}", rs.get)
+		r.Get("/", rs.getAll)
+		r.Get("/download/{image_id}", rs.download)
+		// r.Put("/{image_id}", rs.update)
+	})
+
 	return r
-}
-
-type imageRequest struct {
-	*models.Image
-}
-
-type imageResponse struct {
-	*models.Image `json:"data"`
-	Status        string `json:"status"`
-}
-
-func newImageResponse(a *models.Image) *imageResponse {
-	resp := &imageResponse{Image: a, Status: "success"}
-	return resp
 }
 
 func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
@@ -106,7 +109,7 @@ func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newImageResponse(respImage))
+	render.Respond(w, r, newGlobalResponse(respImage))
 }
 
 func (rs *ImageResource) download(w http.ResponseWriter, r *http.Request) {
@@ -127,6 +130,33 @@ func (rs *ImageResource) download(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, image.ImagePath)
 }
 
+func (rs *ImageResource) delete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	image, err := rs.Store.Delete(id)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	err = os.Remove(image.ImagePath)
+
+	fmt.Println("WRRRRRRRRRRRRRRRRRRRRRRRRY")
+	fmt.Println(image.ImagePath)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, newGlobalResponse(image))
+}
+
 func (rs *ImageResource) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
 
@@ -142,7 +172,19 @@ func (rs *ImageResource) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newImageResponse(image))
+	render.Respond(w, r, newGlobalResponse(image))
+}
+
+func (rs *ImageResource) getAll(w http.ResponseWriter, r *http.Request) {
+
+	images, err := rs.Store.GetAll()
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, newGlobalResponse(images))
 }
 
 //create dir

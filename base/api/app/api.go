@@ -19,6 +19,16 @@ const (
 	ctxProfile
 )
 
+type globalResponse struct {
+	Data   interface{} `json:"data"`
+	Status string      `json:"status"`
+}
+
+func newGlobalResponse(a interface{}) *globalResponse {
+	resp := &globalResponse{Data: a, Status: "success"}
+	return resp
+}
+
 // API provides application resources and handlers.
 type API struct {
 	Account *AccountResource
@@ -56,8 +66,8 @@ func (a *API) Router() *chi.Mux {
 
 	r.Mount("/account", a.Account.router())
 	r.Mount("/profile", a.Profile.router())
-	r.Mount("/user", a.User.router())
-	r.Mount("/image", a.Image.router())
+	r.Mount("/user", a.User.router(a.User))
+	r.Mount("/image", a.Image.router(a.User))
 
 	return r
 }

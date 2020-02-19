@@ -66,14 +66,14 @@ func NewUserResource(store UserStore) *UserResource {
 	}
 }
 
-func (rs *UserResource) router() *chi.Mux {
+func (rs *UserResource) router(temp *UserResource) *chi.Mux {
 
 	r := chi.NewRouter()
 	authAdmin := []string{"admin"}
-	authSession := []string{"admin", "labeler"}
+	authSession := []string{"admin", "labeler", "editor"}
 
-	authAdminmw := rs.basicAuthFactory(authAdmin)
-	authSessionmw := rs.basicAuthFactory(authSession)
+	authAdminmw := temp.basicAuthFactory(authAdmin)
+	authSessionmw := temp.basicAuthFactory(authSession)
 
 	r.Group(func(r chi.Router) {
 		r.Use(authAdminmw)
@@ -85,10 +85,10 @@ func (rs *UserResource) router() *chi.Mux {
 	r.Group(func(r chi.Router) {
 		r.Use(authSessionmw)
 		r.Post("/validatesession", rs.getbycookie)
+		r.Get("/{user_id}", rs.get)
 	})
 
 	r.Post("/login", rs.login)
-	r.Get("/{user_id}", rs.get)
 	return r
 }
 
@@ -100,23 +100,13 @@ type userRequest struct {
 	*usermgmt.User
 }
 
-type userResponse struct {
-	*usermgmt.User `json:"data"`
-	Status         string `json:"status"`
-}
-
-func newUserResponse(a *usermgmt.User) *userResponse {
-	resp := &userResponse{User: a, Status: "success"}
-	return resp
-}
-
 func (rs *UserResource) create(w http.ResponseWriter, r *http.Request) {
 
 	var user usermgmt.User
 
 	json.NewDecoder(r.Body).Decode(&user)
 
-	user.Passcode = generateString(40)
+	user.Passcode = generateString(8)
 	user.Cookie = generateString(40)
 
 	respUser, err := rs.Store.Create(&user)
@@ -126,7 +116,7 @@ func (rs *UserResource) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newUserResponse(respUser))
+	render.Respond(w, r, newGlobalResponse(respUser))
 }
 
 func (rs *UserResource) get(w http.ResponseWriter, r *http.Request) {
@@ -139,7 +129,7 @@ func (rs *UserResource) get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newUserResponse(respUser))
+	render.Respond(w, r, newGlobalResponse(respUser))
 }
 
 func (rs *UserResource) login(w http.ResponseWriter, r *http.Request) {
@@ -155,7 +145,7 @@ func (rs *UserResource) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newUserResponse(respUser))
+	render.Respond(w, r, newGlobalResponse(respUser))
 }
 
 func (rs *UserResource) getbycookie(w http.ResponseWriter, r *http.Request) {
@@ -171,7 +161,7 @@ func (rs *UserResource) getbycookie(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newUserResponse(userResp))
+	render.Respond(w, r, newGlobalResponse(userResp))
 }
 
 func (rs *UserResource) update(w http.ResponseWriter, r *http.Request) {
@@ -204,7 +194,7 @@ func (rs *UserResource) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newUserResponse(respUser))
+	render.Respond(w, r, newGlobalResponse(respUser))
 }
 
 func (rs *UserResource) delete(w http.ResponseWriter, r *http.Request) {
@@ -223,5 +213,5 @@ func (rs *UserResource) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newUserResponse(userResp))
+	render.Respond(w, r, newGlobalResponse(userResp))
 }
