@@ -182,7 +182,26 @@ func (rs *UserResource) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respUser, err := rs.Store.Update(id, &user)
+	getUser, err := rs.Store.Get(id)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	if user.UserRole != "" {
+		getUser.UserRole = user.UserRole
+	}
+
+	if user.Username != "" {
+		getUser.Username = user.Username
+	}
+
+	if user.Passcode != "" {
+		getUser.Passcode = user.Passcode
+	}
+
+	respUser, err := rs.Store.Update(id, getUser)
 
 	if err != nil {
 		switch err.(type) {
