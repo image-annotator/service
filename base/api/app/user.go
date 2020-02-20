@@ -52,6 +52,7 @@ type UserStore interface {
 	Delete(id int) (*usermgmt.User, error)
 	GetByLogin(a *usermgmt.User) (*usermgmt.User, error)
 	GetByCookie(cookie string) (*usermgmt.User, error)
+	GetAll() (*[]usermgmt.User, error)
 }
 
 // UserResource implements user management handler.
@@ -86,6 +87,7 @@ func (rs *UserResource) router(temp *UserResource) *chi.Mux {
 		r.Use(authSessionmw)
 		r.Post("/validatesession", rs.getbycookie)
 		r.Get("/{user_id}", rs.get)
+		r.Get("/", rs.getAll)
 	})
 
 	r.Post("/login", rs.login)
@@ -123,6 +125,18 @@ func (rs *UserResource) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "user_id"))
 
 	respUser, err := rs.Store.Get(id)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, newGlobalResponse(respUser))
+}
+
+func (rs *UserResource) getAll(w http.ResponseWriter, r *http.Request) {
+
+	respUser, err := rs.Store.GetAll()
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))

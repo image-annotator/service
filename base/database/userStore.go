@@ -31,6 +31,21 @@ func (s *UserStore) Create(a *usermgmt.User) (*usermgmt.User, error) {
 	return a, err
 }
 
+// Get all User.
+func (s *UserStore) GetAll() (*[]usermgmt.User, error) {
+
+	var users []usermgmt.User
+
+	err := s.db.Model(&users).Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &users, nil
+
+}
+
 // Get an User by ID.
 func (s *UserStore) Get(id int) (*usermgmt.User, error) {
 

@@ -38,3 +38,8 @@ Thumbs.db
 .vscode/
 /.vscode
 .vscode/settings.json
+/upload
+/base/upload/
+upload/
+base/upload
+
