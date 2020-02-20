@@ -37,7 +37,8 @@ CREATE TABLE images (
 image_id serial NOT NULL,
 created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-image_path VARCHAR (50) NOT NULL UNIQUE,
+image_path VARCHAR (100) NOT NULL UNIQUE,
+file_name VARCHAR (100) NOT NULL,
 PRIMARY KEY (image_id)
 )`
 
@@ -47,6 +48,7 @@ user_id serial NOT NULL,
 created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 username VARCHAR (50) NOT NULL UNIQUE,
+cookie VARCHAR (50) NOT NULL UNIQUE,
 passcode VARCHAR (50) NOT NULL,
 user_role VARCHAR (50) NOT NULL,
 PRIMARY KEY (user_id)
@@ -99,6 +101,12 @@ CREATE TABLE labels
         ON DELETE CASCADE
 )`
 
+const insertAdmin = `
+INSERT INTO users(
+	username, cookie, passcode, user_role)
+	VALUES ('adminone', 'dangfinebuttocks', 'password', 'admin') ON CONFLICT DO NOTHING;
+`
+
 func init() {
 	up := []string{
 		accountTable,
@@ -108,6 +116,7 @@ func init() {
 		accessControlTable,
 		contentTable,
 		labelTable,
+		insertAdmin,
 	}
 
 	down := []string{

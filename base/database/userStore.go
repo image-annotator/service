@@ -1,10 +1,10 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/go-pg/pg"
-	"gitlab.informatika.org/label-1-backend/base/auth/jwt"
-	"gitlab.informatika.org/label-1-backend/base/auth/pwdless"
-	"gitlab.informatika.org/label-1-backend/base/models"
+	"gitlab.informatika.org/label-1-backend/base/auth/usermgmt"
 )
 
 // UserStore implements database operations for User management by user.
@@ -19,54 +19,98 @@ func NewUserStore(db *pg.DB) *UserStore {
 	}
 }
 
+//Create user
+func (s *UserStore) Create(a *usermgmt.User) (*usermgmt.User, error) {
+
+	err := s.db.Insert(a)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return a, err
+}
+
+// Get all User.
+func (s *UserStore) GetAll() (*[]usermgmt.User, error) {
+
+	var users []usermgmt.User
+
+	err := s.db.Model(&users).Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &users, nil
+
+}
+
 // Get an User by ID.
-func (s *UserStore) Get(id int) (*pwdless.User, error) {
-	a := pwdless.User{ID: id}
-	err := s.db.Model(&a).
-		Where("User.id = ?id").
-		Column("User.*", "Token").
-		First()
+func (s *UserStore) Get(id int) (*usermgmt.User, error) {
+
+	a := usermgmt.User{UserID: id}
+
+	err := s.db.Model(&a).Where("user_id = ?", id).Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &a, nil
+}
+
+//Get User by Cookie
+func (s *UserStore) GetByCookie(cookie string) (*usermgmt.User, error) {
+
+	a := usermgmt.User{Cookie: cookie}
+
+	err := s.db.Model(&a).Where("cookie = ?", cookie).Select()
+
 	return &a, err
 }
 
-// Update an User.
-func (s *UserStore) Update(a *pwdless.User) error {
-	_, err := s.db.Model(a).
-		Column("email", "name").
-		WherePK().
-		Update()
-	return err
+//Get User by Username and Passcode
+func (s *UserStore) GetByLogin(a *usermgmt.User) (*usermgmt.User, error) {
+
+	model := new(usermgmt.User)
+
+	err := s.db.Model(model).Where("username = ?", a.Username).Where("passcode = ?", a.Passcode).Select()
+	if err != nil {
+		return nil, err
+	}
+
+	return model, err
+}
+
+// Update a User.
+func (s *UserStore) Update(id int, a *usermgmt.User) (*usermgmt.User, error) {
+	a.UserID = id
+	err := s.db.Update(a)
+	if err != nil {
+		return nil, err
+	}
+	return a, nil
 }
 
 // Delete an User.
-func (s *UserStore) Delete(a *pwdless.User) error {
-	err := s.db.RunInTransaction(func(tx *pg.Tx) error {
-		if _, err := tx.Model(&jwt.Token{}).
-			Where("User_id = ?", a.ID).
-			Delete(); err != nil {
-			return err
-		}
-		if _, err := tx.Model(&models.Profile{}).
-			Where("User_id = ?", a.ID).
-			Delete(); err != nil {
-			return err
-		}
-		return tx.Delete(a)
-	})
-	return err
-}
+func (s *UserStore) Delete(id int) (*usermgmt.User, error) {
 
-// UpdateToken updates a jwt refresh token.
-func (s *UserStore) UpdateToken(t *jwt.Token) error {
-	_, err := s.db.Model(t).
-		Column("identifier").
-		WherePK().
-		Update()
-	return err
-}
+	model := usermgmt.User{UserID: id}
 
-// DeleteToken deletes a jwt refresh token.
-func (s *UserStore) DeleteToken(t *jwt.Token) error {
-	err := s.db.Delete(t)
-	return err
+	fmt.Println(model)
+
+	delUser, err := s.Get(id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.db.Delete(&model)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return delUser, nil
 }

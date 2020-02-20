@@ -19,10 +19,22 @@ const (
 	ctxProfile
 )
 
+type globalResponse struct {
+	Data   interface{} `json:"data"`
+	Status string      `json:"status"`
+}
+
+func newGlobalResponse(a interface{}) *globalResponse {
+	resp := &globalResponse{Data: a, Status: "success"}
+	return resp
+}
+
 // API provides application resources and handlers.
 type API struct {
 	Account *AccountResource
 	Profile *ProfileResource
+	User    *UserResource
+	Image   *ImageResource
 }
 
 // NewAPI configures and returns application API.
@@ -33,9 +45,17 @@ func NewAPI(db *pg.DB) (*API, error) {
 	profileStore := database.NewProfileStore(db)
 	profile := NewProfileResource(profileStore)
 
+	userStore := database.NewUserStore(db)
+	user := NewUserResource(userStore)
+
+	imageStore := database.NewImageStore(db)
+	image := NewImageResource(imageStore)
+
 	api := &API{
 		Account: account,
 		Profile: profile,
+		User:    user,
+		Image:   image,
 	}
 	return api, nil
 }
@@ -46,6 +66,8 @@ func (a *API) Router() *chi.Mux {
 
 	r.Mount("/account", a.Account.router())
 	r.Mount("/profile", a.Profile.router())
+	r.Mount("/user", a.User.router(a.User))
+	r.Mount("/image", a.Image.router(a.User))
 
 	return r
 }
