@@ -59,6 +59,20 @@ func (s *ImageStore) GetAll() (*[]models.Image, error) {
 	return &images, nil
 }
 
+//Query image by filename
+func (s *ImageStore) GetByFilename(query string) (*[]models.Image, error) {
+
+	var images []models.Image
+
+	err := s.db.Model(&images).Where("file_name LIKE ?", "%"+query+"%").Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &images, nil
+}
+
 // Update a Image.
 func (s *ImageStore) Update(id int, a *models.Image) (*models.Image, error) {
 	a.ImageID = id
