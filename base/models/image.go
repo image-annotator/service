@@ -9,6 +9,7 @@ import (
 	"github.com/go-pg/pg/orm"
 )
 
+//Image type struct
 type Image struct {
 	ImageID   int       `sql:"image_id,pk" json:"image_id"`
 	Filename  string    `sql:"file_name" json:"file_name"`

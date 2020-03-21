@@ -31,7 +31,7 @@ func (s *LabelStore) Create(a *models.Label) (*models.Label, error) {
 	return a, err
 }
 
-// Get all Label.
+//GetAll Get all Label.
 func (s *LabelStore) GetAll() (*[]models.Label, error) {
 
 	var labels []models.Label
@@ -60,7 +60,7 @@ func (s *LabelStore) Get(id int) (*models.Label, error) {
 	return &a, nil
 }
 
-//Get Label by Cookie
+//GetByCookie Get Label by Cookie
 func (s *LabelStore) GetByCookie(cookie string) (*models.Label, error) {
 
 	a := models.Label{Cookie: cookie}

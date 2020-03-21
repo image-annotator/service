@@ -6,7 +6,8 @@ import (
 	"github.com/go-pg/pg/orm"
 )
 
-type Image struct {
+//Label type struct model
+type Label struct {
 	LabelID        int `sql:"label_id,pk" 				json:"label_id"`
 	ImageID        int `sql:"image_id" 					json:"image_id"`
 	LabelXCenter   int `sql:"label_x_center" 			json:"label_x_center"`
@@ -19,7 +20,7 @@ type Image struct {
 }
 
 // BeforeInsert hook executed before database insert operation.
-func (a *Image) BeforeInsert(db orm.DB) error {
+func (a *Label) BeforeInsert(db orm.DB) error {
 	now := time.Now()
 	if a.CreatedAt.IsZero() {
 		a.CreatedAt = now
@@ -29,11 +30,11 @@ func (a *Image) BeforeInsert(db orm.DB) error {
 }
 
 // BeforeUpdate hook executed before database update operation.
-func (a *Image) BeforeUpdate(db orm.DB) error {
+func (a *Label) BeforeUpdate(db orm.DB) error {
 	a.UpdatedAt = time.Now()
 }
 
 // BeforeDelete hook executed before database delete operation.
-func (a *Image) BeforeDelete(db orm.DB) error {
+func (a *Label) BeforeDelete(db orm.DB) error {
 	return nil
 }
