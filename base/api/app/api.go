@@ -78,7 +78,7 @@ func (a *API) Router() *chi.Mux {
 	r.Mount("/profile", a.Profile.router())
 	r.Mount("/user", a.User.router(a.User))
 	r.Mount("/image", a.Image.router(a.User))
-	r.Mount("/label", a.Label.router(a.User))
+	r.Mount("/label", a.Label.router(*a))
 	r.Mount("/content", a.Content.router(a.User))
 
 	return r

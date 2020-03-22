@@ -41,26 +41,26 @@ func NewLabelResource(store LabelStore) *LabelResource {
 	}
 }
 
-func (rs *LabelResource) router(temp *UserResource) *chi.Mux {
+func (rs *LabelResource) router(config API) *chi.Mux {
 
 	r := chi.NewRouter()
 	authSession := []string{"admin", "labeler", "editor"}
 
-	authSessionmw := temp.basicAuthFactory(authSession)
+	authSessionmw := config.User.basicAuthFactory(authSession)
 
 	r.Group(func(r chi.Router) {
 		r.Use(authSessionmw)
 		//STANDARD CRUD
-		r.Post("/", rs.create)
-		r.Post("/many", rs.createMany)
-		r.Get("/", rs.getAll)
-		r.Get("/{label_id}", rs.get)
-		r.Put("/{label_id}", rs.update)
-		r.Delete("/{label_id}", rs.delete)
+		r.Post("/", config.create)
+		r.Post("/many", config.createMany)
+		r.Get("/", config.getAll)
+		r.Get("/{label_id}", config.get)
+		r.Put("/{label_id}", config.update)
+		r.Delete("/{label_id}", config.delete)
 
 		//CUSTOM API
-		r.Get("/contentquery/{content_id}", rs.getByContentID)
-		r.Get("/imagequery/{image_id}", rs.getByImageID)
+		r.Get("/contentquery/{content_id}", config.getByContentID)
+		r.Get("/imagequery/{image_id}", config.getByImageID)
 	})
 	return r
 }
@@ -73,7 +73,7 @@ type labelRequest struct {
 	*models.Label
 }
 
-func (rs *LabelResource) create(w http.ResponseWriter, r *http.Request) {
+func (rs *API) create(w http.ResponseWriter, r *http.Request) {
 
 	var label models.Label
 
@@ -84,7 +84,21 @@ func (rs *LabelResource) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respLabel, err := rs.Store.Create(&label)
+	respLabel, err := rs.Label.Store.Create(&label)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	curimage, err := rs.Image.Store.Get(label.ImageID)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	_, err = rs.Image.Store.Label(label.ImageID, curimage)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -94,7 +108,7 @@ func (rs *LabelResource) create(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, newGlobalResponse(respLabel))
 }
 
-func (rs *LabelResource) createMany(w http.ResponseWriter, r *http.Request) {
+func (rs *API) createMany(w http.ResponseWriter, r *http.Request) {
 
 	var labels []models.Label
 	var returnLabels []models.Label
@@ -103,7 +117,7 @@ func (rs *LabelResource) createMany(w http.ResponseWriter, r *http.Request) {
 
 	for _, label := range labels {
 
-		currentTarget, err := rs.Store.Create(&label)
+		currentTarget, err := rs.Label.Store.Create(&label)
 
 		if err != nil {
 			render.Render(w, r, ErrRender(err))
@@ -116,10 +130,10 @@ func (rs *LabelResource) createMany(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, newGlobalResponse(returnLabels))
 }
 
-func (rs *LabelResource) get(w http.ResponseWriter, r *http.Request) {
+func (rs *API) get(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "label_id"))
 
-	respLabel, err := rs.Store.Get(id)
+	respLabel, err := rs.Label.Store.Get(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -129,10 +143,10 @@ func (rs *LabelResource) get(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, newGlobalResponse(respLabel))
 }
 
-func (rs *LabelResource) getByContentID(w http.ResponseWriter, r *http.Request) {
+func (rs *API) getByContentID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "content_id"))
 
-	respLabel, err := rs.Store.GetByContentID(id)
+	respLabel, err := rs.Label.Store.GetByContentID(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -142,10 +156,10 @@ func (rs *LabelResource) getByContentID(w http.ResponseWriter, r *http.Request) 
 	render.Respond(w, r, newGlobalResponse(respLabel))
 }
 
-func (rs *LabelResource) getByImageID(w http.ResponseWriter, r *http.Request) {
+func (rs *API) getByImageID(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
 
-	respLabel, err := rs.Store.GetByImageID(id)
+	respLabel, err := rs.Label.Store.GetByImageID(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -155,9 +169,9 @@ func (rs *LabelResource) getByImageID(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, newGlobalResponse(respLabel))
 }
 
-func (rs *LabelResource) getAll(w http.ResponseWriter, r *http.Request) {
+func (rs *API) getAll(w http.ResponseWriter, r *http.Request) {
 
-	respLabel, err := rs.Store.GetAll()
+	respLabel, err := rs.Label.Store.GetAll()
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -167,7 +181,7 @@ func (rs *LabelResource) getAll(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, newGlobalResponse(respLabel))
 }
 
-func (rs *LabelResource) update(w http.ResponseWriter, r *http.Request) {
+func (rs *API) update(w http.ResponseWriter, r *http.Request) {
 
 	var label models.Label
 
@@ -185,7 +199,7 @@ func (rs *LabelResource) update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	getUser, err := rs.Store.Get(id)
+	getUser, err := rs.Label.Store.Get(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -194,7 +208,7 @@ func (rs *LabelResource) update(w http.ResponseWriter, r *http.Request) {
 
 	label.CreatedAt = getUser.CreatedAt
 
-	respLabel, err := rs.Store.Update(id, &label)
+	respLabel, err := rs.Label.Store.Update(id, &label)
 
 	if err != nil {
 		switch err.(type) {
@@ -209,7 +223,7 @@ func (rs *LabelResource) update(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, newGlobalResponse(respLabel))
 }
 
-func (rs *LabelResource) delete(w http.ResponseWriter, r *http.Request) {
+func (rs *API) delete(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "label_id"))
 
@@ -218,7 +232,7 @@ func (rs *LabelResource) delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	labelResp, err := rs.Store.Delete(id)
+	labelResp, err := rs.Label.Store.Delete(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
