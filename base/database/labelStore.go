@@ -17,6 +17,7 @@ func NewLabelStore(db *pg.DB) *LabelStore {
 	return &LabelStore{
 		db: db,
 	}
+
 }
 
 //Create label
@@ -60,27 +61,32 @@ func (s *LabelStore) Get(id int) (*models.Label, error) {
 	return &a, nil
 }
 
-//GetByCookie Get Label by Cookie
-func (s *LabelStore) GetByCookie(cookie string) (*models.Label, error) {
+// GetByImageID by imageID an Label by ID.
+func (s *LabelStore) GetByImageID(id int) (*[]models.Label, error) {
 
-	a := models.Label{Cookie: cookie}
+	var labels []models.Label
 
-	err := s.db.Model(&a).Where("cookie = ?", cookie).Select()
+	err := s.db.Model(&labels).Where("image_id = ?", id).Select()
 
-	return &a, err
-}
-
-//Get Label by Labelname and Passcode
-func (s *LabelStore) GetByLogin(a *models.Label) (*models.Label, error) {
-
-	models := new(models.Label)
-
-	err := s.db.Model(models).Where("labelname = ?", a.Labelname).Where("passcode = ?", a.Passcode).Select()
 	if err != nil {
 		return nil, err
 	}
 
-	return models, err
+	return &labels, nil
+}
+
+// GetByContentID by imageID an Label by ID.
+func (s *LabelStore) GetByContentID(id int) (*[]models.Label, error) {
+
+	var labels []models.Label
+
+	err := s.db.Model(&labels).Where("label_content_id = ?", id).Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &labels, nil
 }
 
 // Update a Label.
