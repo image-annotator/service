@@ -20,6 +20,9 @@ type ImageStore interface {
 	Update(id int, a *models.Image) (*models.Image, error)
 	Delete(id int) (*models.Image, error)
 	GetAll() (*[]models.Image, error)
+	GetByFilename(query string) (*[]models.Image, error)
+	Label(id int, a *models.Image) (*models.Image, error)
+	Unlabel(id int, a *models.Image) (*models.Image, error)
 }
 
 // ImageResource implements image management handler.
@@ -147,8 +150,6 @@ func (rs *ImageResource) delete(w http.ResponseWriter, r *http.Request) {
 
 	err = os.Remove(image.ImagePath)
 
-	fmt.Println("WRRRRRRRRRRRRRRRRRRRRRRRRY")
-	fmt.Println(image.ImagePath)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -177,7 +178,21 @@ func (rs *ImageResource) get(w http.ResponseWriter, r *http.Request) {
 
 func (rs *ImageResource) getAll(w http.ResponseWriter, r *http.Request) {
 
-	images, err := rs.Store.GetAll()
+	keys, ok := r.URL.Query()["search"]
+
+	var images *[]models.Image
+	var err error
+
+	if !ok || len(keys[0]) < 1 {
+
+		images, err = rs.Store.GetAll()
+
+	} else {
+		key := keys[0]
+
+		images, err = rs.Store.GetByFilename(key)
+
+	}
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))

@@ -9,13 +9,12 @@ import (
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
 	validation "github.com/go-ozzo/ozzo-validation"
-
+	"gitlab.informatika.org/label-1-backend/base/models"
 	// "gitlab.informatika.org/label-1-backend/base/auth/jwt"
+)
 
-	"math/rand"
-	"time"
-
-	"gitlab.informatika.org/label-1-backend/base/auth/usermgmt"
+var (
+	ErrAccessControlValidation = errors.New("access control validation error")
 )
 
 // AccessControlStore defines database operations for AccessControl.
@@ -42,168 +41,135 @@ func NewAccessControlResource(store AccessControlStore) *AccessControlResource {
 func (rs *AccessControlResource) router(temp *AccessControlResource) *chi.Mux {
 
 	r := chi.NewRouter()
-	authAdmin := []string{"admin"}
 	authSession := []string{"admin", "labeler", "editor"}
 
-	authAdminmw := temp.basicAuthFactory(authAdmin)
 	authSessionmw := temp.basicAuthFactory(authSession)
 
 	r.Group(func(r chi.Router) {
 		r.Use(authSessionmw)
-		r.Post("/createaccess", rs.create)
+		//CRUD STANDARD
+		r.Post("/", rs.create)
 		r.Get("/{Image_id}", rs.get)
 		r.Get("/", rs.getAll)
-		r.Put("/update", rs.update)
+		r.Put("/{image_id}", rs.update)
 		r.Delete("/{Image_id}", rs.delete)
 	})
-
-	r.Post("/login", rs.login)
 	return r
+}
+
+type accessControlRequest struct {
+	*models.AccessControl
 }
 
 func (rs *AccessControlResource) create(w http.ResponseWriter, r *http.Request) {
 
-	var ac models.AccessControl
+	var accessControl models.AccessControl
 
-	json.NewDecoder(r.Body).Decode(&user)
-
-	user.Passcode = generateString(8)
-	user.Cookie = generateString(40)
-
-	respAccessControl, err := rs.Store.Create(&user)
+	err := json.NewDecoder(r.Body).Decode(&accessControl)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	render.Respond(w, r, newGlobalResponse(respUser))
+	respAC, err := rs.Store.Create(&accessControl)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, newGlobalResponse(respAC))
 }
 
 func (rs *AccessControlResource) get(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "user_id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
 
-	respUser, err := rs.Store.Get(id)
+	respAC, err := rs.Store.Get(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	render.Respond(w, r, newGlobalResponse(respUser))
+	render.Respond(w, r, newGlobalResponse(respAC))
 }
 
 func (rs *AccessControlResource) getAll(w http.ResponseWriter, r *http.Request) {
 
-	respUser, err := rs.Store.GetAll()
+	respAC, err := rs.Store.GetAll()
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	render.Respond(w, r, newGlobalResponse(respUser))
-}
-
-func (rs *AccessControlResource) login(w http.ResponseWriter, r *http.Request) {
-
-	var user usermgmt.User
-
-	json.NewDecoder(r.Body).Decode(&user)
-
-	respUser, err := rs.Store.GetByLogin(&user)
-
-	if err != nil {
-		render.Render(w, r, ErrRender(err))
-		return
-	}
-
-	render.Respond(w, r, newGlobalResponse(respUser))
-}
-
-func (rs *AccessControlResource) getbycookie(w http.ResponseWriter, r *http.Request) {
-
-	var user usermgmt.User
-
-	json.NewDecoder(r.Body).Decode(&user)
-
-	userResp, err := rs.Store.GetByCookie(user.Cookie)
-
-	if err != nil {
-		render.Render(w, r, ErrRender(err))
-		return
-	}
-
-	render.Respond(w, r, newGlobalResponse(userResp))
+	render.Respond(w, r, newGlobalResponse(respAC))
 }
 
 func (rs *AccessControlResource) update(w http.ResponseWriter, r *http.Request) {
 
-	var user usermgmt.User
+	var accessControl models.AccessControl
 
-	id, err := strconv.Atoi(chi.URLParam(r, "user_id"))
-
-	if err != nil {
-		render.Render(w, r, ErrRender(err))
-		return
-	}
-
-	err = json.NewDecoder(r.Body).Decode(&user)
+	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	getUser, err := rs.Store.Get(id)
+	err = json.NewDecoder(r.Body).Decode(&accessControl)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	if user.UserRole != "" {
-		getUser.UserRole = user.UserRole
+	getAC, err := rs.Store.Get(id)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
 	}
 
-	if user.Username != "" {
-		getUser.Username = user.Username
+	if accessControl.Timeout != "" {
+		getAC.Timeout = accessControl.Timeout
 	}
 
-	if user.Passcode != "" {
-		getUser.Passcode = user.Passcode
+	if accessControl.AccountID != "" {
+		getAC.AccountID = accessControl.AccountID
 	}
 
-	respUser, err := rs.Store.Update(id, getUser)
+	respAC, err := rs.Store.Update(id, getAC)
 
 	if err != nil {
 		switch err.(type) {
 		case validation.Errors:
-			render.Render(w, r, ErrValidation(ErrUserValidation, err.(validation.Errors)))
+			render.Render(w, r, ErrValidation(ErrAccessControlValidation, err.(validation.Errors)))
 			return
 		}
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	render.Respond(w, r, newGlobalResponse(respUser))
+	render.Respond(w, r, newGlobalResponse(respAC))
 }
 
 func (rs *AccessControlResource) delete(w http.ResponseWriter, r *http.Request) {
 
-	id, err := strconv.Atoi(chi.URLParam(r, "user_id"))
+	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	userResp, err := rs.Store.Delete(id)
+	respAC, err := rs.Store.Delete(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	render.Respond(w, r, newGlobalResponse(userResp))
+	render.Respond(w, r, newGlobalResponse(respAC))
 }

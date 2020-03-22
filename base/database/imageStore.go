@@ -59,6 +59,20 @@ func (s *ImageStore) GetAll() (*[]models.Image, error) {
 	return &images, nil
 }
 
+//Query image by filename
+func (s *ImageStore) GetByFilename(query string) (*[]models.Image, error) {
+
+	var images []models.Image
+
+	err := s.db.Model(&images).Where("file_name LIKE ?", "%"+query+"%").Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &images, nil
+}
+
 // Update a Image.
 func (s *ImageStore) Update(id int, a *models.Image) (*models.Image, error) {
 	a.ImageID = id
@@ -66,6 +80,32 @@ func (s *ImageStore) Update(id int, a *models.Image) (*models.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+	return a, nil
+}
+
+// Label a Image.
+func (s *ImageStore) Label(id int, a *models.Image) (*models.Image, error) {
+	a.ImageID = id
+	a.Labeled = true
+
+	err := s.db.Update(a)
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
+}
+
+// Unlabel a Image.
+func (s *ImageStore) Unlabel(id int, a *models.Image) (*models.Image, error) {
+	a.ImageID = id
+	a.Labeled = false
+
+	err := s.db.Update(a)
+	if err != nil {
+		return nil, err
+	}
+
 	return a, nil
 }
 
