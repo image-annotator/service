@@ -21,6 +21,8 @@ type ImageStore interface {
 	Delete(id int) (*models.Image, error)
 	GetAll() (*[]models.Image, error)
 	GetByFilename(query string) (*[]models.Image, error)
+	Label(id int, a *models.Image) (*models.Image, error)
+	Unlabel(id int, a *models.Image) (*models.Image, error)
 }
 
 // ImageResource implements image management handler.

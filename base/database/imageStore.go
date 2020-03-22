@@ -84,9 +84,7 @@ func (s *ImageStore) Update(id int, a *models.Image) (*models.Image, error) {
 }
 
 // Label a Image.
-func (s *ImageStore) Label(id int) (*models.Image, error) {
-	var a models.Image
-
+func (s *ImageStore) Label(id int, a *models.Image) (*models.Image, error) {
 	a.ImageID = id
 	a.Labeled = true
 
@@ -95,13 +93,11 @@ func (s *ImageStore) Label(id int) (*models.Image, error) {
 		return nil, err
 	}
 
-	return &a, nil
+	return a, nil
 }
 
 // Unlabel a Image.
-func (s *ImageStore) Unlabel(id int) (*models.Image, error) {
-	var a models.Image
-
+func (s *ImageStore) Unlabel(id int, a *models.Image) (*models.Image, error) {
 	a.ImageID = id
 	a.Labeled = false
 
@@ -110,7 +106,7 @@ func (s *ImageStore) Unlabel(id int) (*models.Image, error) {
 		return nil, err
 	}
 
-	return &a, nil
+	return a, nil
 }
 
 // Delete an Image.
