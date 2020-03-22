@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-pg/pg"
-	"gitlab.informatika.org/content-1-backend/base/models"
+	"gitlab.informatika.org/label-1-backend/base/models"
 )
 
 // ContentStore implements database operations for Content management by content.
@@ -50,7 +50,7 @@ func (s *ContentStore) GetAll() (*[]models.Content, error) {
 // Get an Content by ID.
 func (s *ContentStore) Get(id int) (*models.Content, error) {
 
-	a := models.Content{ContentID: id}
+	a := models.Content{LabelContentID: id}
 
 	err := s.db.Model(&a).Where("label_contents_id = ?", id).Select()
 
@@ -77,7 +77,7 @@ func (s *ContentStore) GetByContentName(contentName string) (*[]models.Content, 
 
 // Update a Content.
 func (s *ContentStore) Update(id int, a *models.Content) (*models.Content, error) {
-	a.ContentID = id
+	a.LabelContentID = id
 	err := s.db.Update(a)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (s *ContentStore) Update(id int, a *models.Content) (*models.Content, error
 // Delete an Content.
 func (s *ContentStore) Delete(id int) (*models.Content, error) {
 
-	models := models.Content{ContentID: id}
+	models := models.Content{: id}
 
 	fmt.Println(models)
 

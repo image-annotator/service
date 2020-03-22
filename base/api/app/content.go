@@ -7,7 +7,7 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
-	"gitlab.informatika.org/content-1-backend/base/models"
+	"gitlab.informatika.org/label-1-backend/base/models"
 	// "gitlab.informatika.org/content-1-backend/base/auth/jwt"
 )
 
