@@ -94,10 +94,6 @@ func (rs *UserResource) router(temp *UserResource) *chi.Mux {
 	return r
 }
 
-type payload struct {
-	message string
-}
-
 type userRequest struct {
 	*usermgmt.User
 }

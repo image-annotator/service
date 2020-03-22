@@ -83,6 +83,36 @@ func (s *ImageStore) Update(id int, a *models.Image) (*models.Image, error) {
 	return a, nil
 }
 
+// Label a Image.
+func (s *ImageStore) Label(id int) (*models.Image, error) {
+	var a models.Image
+
+	a.ImageID = id
+	a.Labeled = true
+
+	err := s.db.Update(a)
+	if err != nil {
+		return nil, err
+	}
+
+	return &a, nil
+}
+
+// Unlabel a Image.
+func (s *ImageStore) Unlabel(id int) (*models.Image, error) {
+	var a models.Image
+
+	a.ImageID = id
+	a.Labeled = false
+
+	err := s.db.Update(a)
+	if err != nil {
+		return nil, err
+	}
+
+	return &a, nil
+}
+
 // Delete an Image.
 func (s *ImageStore) Delete(id int) (*models.Image, error) {
 
