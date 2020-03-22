@@ -76,6 +76,8 @@ CREATE TABLE contents
 (
     label_contents_id serial NOT NULL,
     content_name VARCHAR (50) NOT NULL,
+	created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+	updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
     PRIMARY KEY (label_contents_id)
 )`
 

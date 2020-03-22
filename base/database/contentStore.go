@@ -65,8 +65,9 @@ func (s *ContentStore) Get(id int) (*models.Content, error) {
 func (s *ContentStore) GetByContentName(contentName string) (*[]models.Content, error) {
 
 	var contents []models.Content
-
-	err := s.db.Model(&contents).Where("content_name = ?", contentName).Select()
+	queryString := ("%" + contentName + "%")
+	fmt.Println(queryString)
+	err := s.db.Model(&contents).Where("content_name LIKE ?", queryString).Select()
 
 	if err != nil {
 		return nil, err
@@ -88,7 +89,7 @@ func (s *ContentStore) Update(id int, a *models.Content) (*models.Content, error
 // Delete an Content.
 func (s *ContentStore) Delete(id int) (*models.Content, error) {
 
-	models := models.Content{: id}
+	models := models.Content{LabelContentID: id}
 
 	fmt.Println(models)
 

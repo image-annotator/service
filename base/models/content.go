@@ -11,10 +11,10 @@ import (
 
 //Content type struct model
 type Content struct {
-	ContentContentID int       `sql:"label_contents_id,pk" json:"label_contents_id"`
-	ContentName      string    `sql:"content_name" json:"content_name"`
-	CreatedAt        time.Time `sql:"created_at" json:"created_at"`
-	UpdatedAt        time.Time `sql:"updated_at" json:"updated_at"`
+	LabelContentID int       `sql:"label_contents_id,pk" json:"label_contents_id"`
+	ContentName    string    `sql:"content_name" json:"content_name"`
+	CreatedAt      time.Time `sql:"created_at" json:"created_at"`
+	UpdatedAt      time.Time `sql:"updated_at" json:"updated_at"`
 }
 
 // BeforeInsert hook executed before database insert operation.

@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"gitlab.informatika.org/label-1-backend/base/models"
 	// "gitlab.informatika.org/label-1-backend/base/auth/jwt"
 )
@@ -48,8 +50,17 @@ func (rs *LabelResource) router(temp *UserResource) *chi.Mux {
 
 	r.Group(func(r chi.Router) {
 		r.Use(authSessionmw)
-		r.Post("/create", rs.create)
-		r.Post("/createMany", rs.createMany)
+		//STANDARD CRUD
+		r.Post("/", rs.create)
+		r.Post("/many", rs.createMany)
+		r.Get("/", rs.getAll)
+		r.Get("/{label_id}", rs.get)
+		r.Put("/{label_id}", rs.update)
+		r.Delete("/{label_id}", rs.delete)
+
+		//CUSTOM API
+		r.Get("/contentquery/{content_id}", rs.getByContentID)
+		r.Get("/imagequery/{image_id}", rs.getByImageID)
 	})
 	return r
 }
@@ -86,115 +97,133 @@ func (rs *LabelResource) create(w http.ResponseWriter, r *http.Request) {
 func (rs *LabelResource) createMany(w http.ResponseWriter, r *http.Request) {
 
 	var labels []models.Label
+	var returnLabels []models.Label
 
 	json.NewDecoder(r.Body).Decode(&labels)
 
 	for _, label := range labels {
 
-		_, err := rs.Store.Create(&label)
+		currentTarget, err := rs.Store.Create(&label)
 
 		if err != nil {
 			render.Render(w, r, ErrRender(err))
 			return
 		}
 
+		returnLabels = append(returnLabels, *currentTarget)
 	}
 
-	render.Respond(w, r, newGlobalResponse(labels))
+	render.Respond(w, r, newGlobalResponse(returnLabels))
 }
 
-// func (rs *LabelResource) get(w http.ResponseWriter, r *http.Request) {
-// 	id, err := strconv.Atoi(chi.URLParam(r, "label_id"))
+func (rs *LabelResource) get(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "label_id"))
 
-// 	respLabel, err := rs.Store.Get(id)
+	respLabel, err := rs.Store.Get(id)
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	render.Respond(w, r, newGlobalResponse(respLabel))
-// }
+	render.Respond(w, r, newGlobalResponse(respLabel))
+}
 
-// func (rs *LabelResource) getAll(w http.ResponseWriter, r *http.Request) {
+func (rs *LabelResource) getByContentID(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "content_id"))
 
-// 	respLabel, err := rs.Store.GetAll()
+	respLabel, err := rs.Store.GetByContentID(id)
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	render.Respond(w, r, newGlobalResponse(respLabel))
-// }
+	render.Respond(w, r, newGlobalResponse(respLabel))
+}
 
-// func (rs *LabelResource) update(w http.ResponseWriter, r *http.Request) {
+func (rs *LabelResource) getByImageID(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
 
-// 	var label models.Label
+	respLabel, err := rs.Store.GetByImageID(id)
 
-// 	id, err := strconv.Atoi(chi.URLParam(r, "label_id"))
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	render.Respond(w, r, newGlobalResponse(respLabel))
+}
 
-// 	err = json.NewDecoder(r.Body).Decode(&label)
+func (rs *LabelResource) getAll(w http.ResponseWriter, r *http.Request) {
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	respLabel, err := rs.Store.GetAll()
 
-// 	getLabel, err := rs.Store.Get(id)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	render.Respond(w, r, newGlobalResponse(respLabel))
+}
 
-// 	if label.LabelRole != "" {
-// 		getLabel.LabelRole = label.LabelRole
-// 	}
+func (rs *LabelResource) update(w http.ResponseWriter, r *http.Request) {
 
-// 	if label.Labelname != "" {
-// 		getLabel.Labelname = label.Labelname
-// 	}
+	var label models.Label
 
-// 	if label.Passcode != "" {
-// 		getLabel.Passcode = label.Passcode
-// 	}
+	id, err := strconv.Atoi(chi.URLParam(r, "label_id"))
 
-// 	respLabel, err := rs.Store.Update(id, getLabel)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		switch err.(type) {
-// 		case validation.Errors:
-// 			render.Render(w, r, ErrValidation(ErrLabelValidation, err.(validation.Errors)))
-// 			return
-// 		}
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	err = json.NewDecoder(r.Body).Decode(&label)
 
-// 	render.Respond(w, r, newGlobalResponse(respLabel))
-// }
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// func (rs *LabelResource) delete(w http.ResponseWriter, r *http.Request) {
+	getUser, err := rs.Store.Get(id)
 
-// 	id, err := strconv.Atoi(chi.URLParam(r, "label_id"))
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	label.CreatedAt = getUser.CreatedAt
 
-// 	labelResp, err := rs.Store.Delete(id)
+	respLabel, err := rs.Store.Update(id, &label)
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	if err != nil {
+		switch err.(type) {
+		case validation.Errors:
+			render.Render(w, r, ErrValidation(ErrLabelValidation, err.(validation.Errors)))
+			return
+		}
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	render.Respond(w, r, newGlobalResponse(labelResp))
-// }
+	render.Respond(w, r, newGlobalResponse(respLabel))
+}
+
+func (rs *LabelResource) delete(w http.ResponseWriter, r *http.Request) {
+
+	id, err := strconv.Atoi(chi.URLParam(r, "label_id"))
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	labelResp, err := rs.Store.Delete(id)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, newGlobalResponse(labelResp))
+}

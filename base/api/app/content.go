@@ -3,10 +3,13 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
+	validation "github.com/go-ozzo/ozzo-validation"
 	"gitlab.informatika.org/label-1-backend/base/models"
 	// "gitlab.informatika.org/content-1-backend/base/auth/jwt"
 )
@@ -47,7 +50,13 @@ func (rs *ContentResource) router(temp *UserResource) *chi.Mux {
 
 	r.Group(func(r chi.Router) {
 		r.Use(authSessionmw)
-		r.Post("/create", rs.create)
+		//CRUD STANDARD
+		r.Post("/", rs.create)
+		r.Get("/", rs.getByContentName)
+		r.Get("/{content_id}", rs.get)
+		r.Put("/{content_id}", rs.update)
+		r.Delete("/{content_id}", rs.delete)
+
 	})
 	return r
 }
@@ -77,98 +86,100 @@ func (rs *ContentResource) create(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, newGlobalResponse(respContent))
 }
 
-// func (rs *ContentResource) get(w http.ResponseWriter, r *http.Request) {
-// 	id, err := strconv.Atoi(chi.URLParam(r, "content_id"))
+func (rs *ContentResource) get(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "content_id"))
 
-// 	respContent, err := rs.Store.Get(id)
+	respContent, err := rs.Store.Get(id)
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	render.Respond(w, r, newGlobalResponse(respContent))
-// }
+	render.Respond(w, r, newGlobalResponse(respContent))
+}
 
-// func (rs *ContentResource) getAll(w http.ResponseWriter, r *http.Request) {
+func (rs *ContentResource) getByContentName(w http.ResponseWriter, r *http.Request) {
 
-// 	respContent, err := rs.Store.GetAll()
+	var respContent *[]models.Content
+	var err error
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	suggestionValue := r.URL.Query().Get("suggestion")
 
-// 	render.Respond(w, r, newGlobalResponse(respContent))
-// }
+	if suggestionValue == "" {
+		fmt.Println(suggestionValue)
+		respContent, err = rs.Store.GetAll()
+	} else {
+		fmt.Println(suggestionValue)
+		respContent, err = rs.Store.GetByContentName(suggestionValue)
+	}
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// func (rs *ContentResource) update(w http.ResponseWriter, r *http.Request) {
+	render.Respond(w, r, newGlobalResponse(respContent))
+}
 
-// 	var content models.Content
+func (rs *ContentResource) update(w http.ResponseWriter, r *http.Request) {
 
-// 	id, err := strconv.Atoi(chi.URLParam(r, "content_id"))
+	var content models.Content
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	id, err := strconv.Atoi(chi.URLParam(r, "content_id"))
 
-// 	err = json.NewDecoder(r.Body).Decode(&content)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	err = json.NewDecoder(r.Body).Decode(&content)
 
-// 	getContent, err := rs.Store.Get(id)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	getContent, err := rs.Store.Get(id)
 
-// 	if content.ContentRole != "" {
-// 		getContent.ContentRole = content.ContentRole
-// 	}
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if content.Contentname != "" {
-// 		getContent.Contentname = content.Contentname
-// 	}
+	if content.ContentName != "" {
+		getContent.ContentName = content.ContentName
+	}
 
-// 	if content.Passcode != "" {
-// 		getContent.Passcode = content.Passcode
-// 	}
+	respContent, err := rs.Store.Update(id, getContent)
 
-// 	respContent, err := rs.Store.Update(id, getContent)
+	if err != nil {
+		switch err.(type) {
+		case validation.Errors:
+			render.Render(w, r, ErrValidation(ErrContentValidation, err.(validation.Errors)))
+			return
+		}
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		switch err.(type) {
-// 		case validation.Errors:
-// 			render.Render(w, r, ErrValidation(ErrContentValidation, err.(validation.Errors)))
-// 			return
-// 		}
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	render.Respond(w, r, newGlobalResponse(respContent))
+}
 
-// 	render.Respond(w, r, newGlobalResponse(respContent))
-// }
+func (rs *ContentResource) delete(w http.ResponseWriter, r *http.Request) {
 
-// func (rs *ContentResource) delete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "content_id"))
 
-// 	id, err := strconv.Atoi(chi.URLParam(r, "content_id"))
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
+	contentResp, err := rs.Store.Delete(id)
 
-// 	contentResp, err := rs.Store.Delete(id)
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
 
-// 	if err != nil {
-// 		render.Render(w, r, ErrRender(err))
-// 		return
-// 	}
-
-// 	render.Respond(w, r, newGlobalResponse(contentResp))
-// }
+	render.Respond(w, r, newGlobalResponse(contentResp))
+}
