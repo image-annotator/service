@@ -16,7 +16,8 @@ import (
 
 // The list of error types returned from content resource.
 var (
-	ErrContentValidation = errors.New("content validation error")
+	ErrContentValidation    = errors.New("content validation error")
+	ErrContentDuplicateEror = errors.New("ERROR #23505 duplicate key value violates unique constraint \"contents_content_name_key\"")
 )
 
 // ContentStore defines database operations for content.
@@ -27,6 +28,7 @@ type ContentStore interface {
 	GetByContentName(contentName string) (*[]models.Content, error)
 	Update(id int, a *models.Content) (*models.Content, error)
 	Delete(id int) (*models.Content, error)
+	GetByExactContentName(contentName string) (*models.Content, error)
 }
 
 // ContentResource implements content management handler.
@@ -44,7 +46,7 @@ func NewContentResource(store ContentStore) *ContentResource {
 func (rs *ContentResource) router(temp *UserResource) *chi.Mux {
 
 	r := chi.NewRouter()
-	authSession := []string{"admin", "contenter", "editor"}
+	authSession := []string{"admin", "labeler", "editor"}
 
 	authSessionmw := temp.basicAuthFactory(authSession)
 
@@ -79,8 +81,17 @@ func (rs *ContentResource) create(w http.ResponseWriter, r *http.Request) {
 	respContent, err := rs.Store.Create(&content)
 
 	if err != nil {
-		render.Render(w, r, ErrRender(err))
-		return
+		if err.Error() == ErrContentDuplicateEror.Error() {
+			respContent, err = rs.Store.GetByExactContentName(content.ContentName)
+
+			if err != nil {
+				render.Render(w, r, ErrRender(err))
+				return
+			}
+		} else {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
 	}
 
 	render.Respond(w, r, newGlobalResponse(respContent))

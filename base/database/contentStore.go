@@ -76,6 +76,22 @@ func (s *ContentStore) GetByContentName(contentName string) (*[]models.Content, 
 	return &contents, nil
 }
 
+// GetByExactContentName by imageID an Content by ID.
+func (s *ContentStore) GetByExactContentName(contentName string) (*models.Content, error) {
+
+	var contents models.Content
+
+	queryString := ("" + contentName + "")
+	fmt.Println(queryString)
+	err := s.db.Model(&contents).Where("content_name LIKE ?", queryString).Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &contents, nil
+}
+
 // Update a Content.
 func (s *ContentStore) Update(id int, a *models.Content) (*models.Content, error) {
 	a.LabelContentID = id
