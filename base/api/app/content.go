@@ -44,7 +44,7 @@ func NewContentResource(store ContentStore) *ContentResource {
 func (rs *ContentResource) router(temp *UserResource) *chi.Mux {
 
 	r := chi.NewRouter()
-	authSession := []string{"admin", "contenter", "editor"}
+	authSession := []string{"admin", "labeler", "editor"}
 
 	authSessionmw := temp.basicAuthFactory(authSession)
 

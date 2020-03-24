@@ -124,6 +124,20 @@ func (rs *API) createMany(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		curimage, err := rs.Image.Store.Get(label.ImageID)
+
+		if err != nil {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
+
+		_, err = rs.Image.Store.Label(label.ImageID, curimage)
+
+		if err != nil {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
+
 		returnLabels = append(returnLabels, *currentTarget)
 	}
 
