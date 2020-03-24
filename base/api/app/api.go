@@ -2,6 +2,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -80,8 +81,17 @@ func (a *API) Router() *chi.Mux {
 	r.Mount("/image", a.Image.router(a.User))
 	r.Mount("/label", a.Label.router(*a))
 	r.Mount("/content", a.Content.router(a.User))
+	r.Get("/uploads/{imagepath}", getImage)
 
 	return r
+}
+
+func getImage(w http.ResponseWriter, r *http.Request) {
+
+	imagepath := chi.URLParam(r, "imagepath")
+	fmt.Println("PEPEEGAAA")
+	fmt.Println(imagepath)
+	http.ServeFile(w, r, "uploads/"+imagepath)
 }
 
 func log(r *http.Request) logrus.FieldLogger {

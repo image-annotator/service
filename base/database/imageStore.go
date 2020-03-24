@@ -45,6 +45,20 @@ func (s *ImageStore) Get(id int) (*models.Image, error) {
 	return &a, nil
 }
 
+// GetPerPage 20 Image by ID.
+func (s *ImageStore) GetPerPage(page int, perpage int) (*[]models.Image, error) {
+
+	var images []models.Image
+
+	err := s.db.Model(&images).Offset((page - 1) * perpage).Limit(perpage).Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &images, nil
+}
+
 // GetAll Image.
 func (s *ImageStore) GetAll() (*[]models.Image, error) {
 
@@ -60,11 +74,11 @@ func (s *ImageStore) GetAll() (*[]models.Image, error) {
 }
 
 //Query image by filename
-func (s *ImageStore) GetByFilename(query string) (*[]models.Image, error) {
+func (s *ImageStore) GetByFilename(query string, page int, perpage int) (*[]models.Image, error) {
 
 	var images []models.Image
 
-	err := s.db.Model(&images).Where("file_name LIKE ?", "%"+query+"%").Select()
+	err := s.db.Model(&images).Where("file_name LIKE ?", "%"+query+"%").Offset((page - 1) * perpage).Limit(perpage).Select()
 
 	if err != nil {
 		return nil, err

@@ -17,10 +17,11 @@ import (
 type ImageStore interface {
 	Create(a *models.Image) (*models.Image, error)
 	Get(id int) (*models.Image, error)
+	GetPerPage(page int, perpage int) (*[]models.Image, error)
 	Update(id int, a *models.Image) (*models.Image, error)
 	Delete(id int) (*models.Image, error)
 	GetAll() (*[]models.Image, error)
-	GetByFilename(query string) (*[]models.Image, error)
+	GetByFilename(query string, page int, perpage int) (*[]models.Image, error)
 	Label(id int, a *models.Image) (*models.Image, error)
 	Unlabel(id int, a *models.Image) (*models.Image, error)
 }
@@ -179,18 +180,39 @@ func (rs *ImageResource) get(w http.ResponseWriter, r *http.Request) {
 func (rs *ImageResource) getAll(w http.ResponseWriter, r *http.Request) {
 
 	keys, ok := r.URL.Query()["search"]
+	PerPage, ok := r.URL.Query()["PerPage"]
+	Page, ok := r.URL.Query()["Page"]
 
 	var images *[]models.Image
 	var err error
 
-	if !ok || len(keys[0]) < 1 {
+	fmt.Println(len(PerPage), "PERPAGE")
+	fmt.Println(len(Page), "PAGE")
 
-		images, err = rs.Store.GetAll()
+	if (!ok || len(keys) < 1) && len(Page) == 1 && len(PerPage) == 1 {
 
-	} else {
+		curPage, err := strconv.Atoi(Page[0])
+		curPerPage, err := strconv.Atoi(PerPage[0])
+
+		if err != nil {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
+
+		images, err = rs.Store.GetPerPage(curPage, curPerPage)
+
+	} else if len(Page) == 1 && len(PerPage) == 1 {
 		key := keys[0]
 
-		images, err = rs.Store.GetByFilename(key)
+		curPage, err := strconv.Atoi(Page[0])
+		curPerPage, err := strconv.Atoi(PerPage[0])
+
+		if err != nil {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
+
+		images, err = rs.Store.GetByFilename(key, curPage, curPerPage)
 
 	}
 

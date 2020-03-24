@@ -78,7 +78,8 @@ CREATE TABLE contents
     content_name VARCHAR (50) NOT NULL,
 	created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 	updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
-    PRIMARY KEY (label_contents_id)
+    PRIMARY KEY (label_contents_id),
+    UNIQUE (content_name)
 )`
 
 const labelTable = `
