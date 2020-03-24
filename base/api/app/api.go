@@ -32,12 +32,13 @@ func newGlobalResponse(a interface{}) *globalResponse {
 
 // API provides application resources and handlers.
 type API struct {
-	Account *AccountResource
-	Profile *ProfileResource
-	User    *UserResource
-	Image   *ImageResource
-	Label   *LabelResource
-	Content *ContentResource
+	Account       *AccountResource
+	Profile       *ProfileResource
+	User          *UserResource
+	Image         *ImageResource
+	Label         *LabelResource
+	Content       *ContentResource
+	AccessControl *AccessControlResource
 }
 
 // NewAPI configures and returns application API.
@@ -60,13 +61,17 @@ func NewAPI(db *pg.DB) (*API, error) {
 	contentStore := database.NewContentStore(db)
 	content := NewContentResource(contentStore)
 
+	accessControlStore := database.NewContentStore(db)
+	accessControl := NewContentResource(accessControlStore)
+
 	api := &API{
-		Account: account,
-		Profile: profile,
-		User:    user,
-		Image:   image,
-		Label:   label,
-		Content: content,
+		Account: 		account,
+		Profile: 		profile,
+		User:    		user,
+		Image:   		image,
+		Label:   		label,
+		Content: 		content,
+		AccessControl:	accessControl,
 	}
 	return api, nil
 }
@@ -81,6 +86,7 @@ func (a *API) Router() *chi.Mux {
 	r.Mount("/image", a.Image.router(a.User))
 	r.Mount("/label", a.Label.router(*a))
 	r.Mount("/content", a.Content.router(a.User))
+	r.Mount("/accesscontrol", a.AccessControl.router(a.User))
 	r.Get("/uploads/{imagepath}", getImage)
 
 	return r
