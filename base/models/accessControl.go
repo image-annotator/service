@@ -8,8 +8,8 @@ import (
 
 type AccessControl struct {
 	ImageID int       `sql:"image_id,pk" json:"image_id"`
-	UserID  int       `json:"user_id"`
-	Timeout time.Time `json:"timeout"`
+	UserID  int       `sql:"user_id" json:"user_id"`
+	Timeout time.Time `sql:"timeout" json:"timeout"`
 }
 
 // BeforeInsert hook executed before database insert operation.

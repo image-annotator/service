@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -49,10 +50,10 @@ func (rs *AccessControlResource) router(temp *UserResource) *chi.Mux {
 		r.Use(authSessionmw)
 		//CRUD STANDARD
 		r.Post("/", rs.create)
-		r.Get("/{Image_id}", rs.get)
+		r.Get("/{image_id}", rs.get)
 		r.Get("/", rs.getAll)
 		r.Put("/{image_id}", rs.update)
-		r.Delete("/{Image_id}", rs.delete)
+		r.Delete("/{image_id}", rs.delete)
 	})
 	return r
 }
@@ -83,7 +84,15 @@ func (rs *AccessControlResource) create(w http.ResponseWriter, r *http.Request) 
 }
 
 func (rs *AccessControlResource) get(w http.ResponseWriter, r *http.Request) {
+
 	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	fmt.Println(id, "AIIIDIIII")
 
 	respAC, err := rs.Store.Get(id)
 
