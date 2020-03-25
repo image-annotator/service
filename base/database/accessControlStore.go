@@ -19,6 +19,16 @@ func NewAccessControlStore(db *pg.DB) *AccessControlStore {
 	}
 }
 
+func (s *AccessControlStore) Count(id int) (int, error) {
+
+	count, err := s.db.Model(&models.AccessControl{}).Count()
+	if err != nil {
+		return 0, err
+	}
+
+	return count, nil
+}
+
 //Create accesscontrol
 func (s *AccessControlStore) Create(a *models.AccessControl) (*models.AccessControl, error) {
 

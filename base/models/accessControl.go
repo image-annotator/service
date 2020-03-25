@@ -7,6 +7,8 @@ import (
 )
 
 type AccessControl struct {
+	tableName struct{} `pg:"access_control"`
+
 	ImageID int       `sql:"image_id,pk" json:"image_id"`
 	UserID  int       `sql:"user_id" json:"user_id"`
 	Timeout time.Time `sql:"timeout" json:"timeout"`

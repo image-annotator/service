@@ -2,7 +2,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -86,7 +85,7 @@ func (a *API) Router() *chi.Mux {
 	r.Mount("/image", a.Image.router(a.User))
 	r.Mount("/label", a.Label.router(*a))
 	r.Mount("/content", a.Content.router(a.User))
-	r.Mount("/accesscontrol", a.AccessControl.router(a.User))
+	r.Mount("/accesscontrol", a.AccessControl.router(*a))
 	r.Get("/uploads/{imagepath}", getImage)
 
 	return r
@@ -95,8 +94,6 @@ func (a *API) Router() *chi.Mux {
 func getImage(w http.ResponseWriter, r *http.Request) {
 
 	imagepath := chi.URLParam(r, "imagepath")
-	fmt.Println("PEPEEGAAA")
-	fmt.Println(imagepath)
 	http.ServeFile(w, r, "uploads/"+imagepath)
 }
 

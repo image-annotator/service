@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/render"
@@ -25,6 +27,7 @@ type AccessControlStore interface {
 	Update(id int, a *models.AccessControl) (*models.AccessControl, error)
 	Delete(id int) (*models.AccessControl, error)
 	GetAll() (*[]models.AccessControl, error)
+	Count(id int) (int, error)
 }
 
 // AccessControlResource implements AccessControl management handler.
@@ -39,21 +42,23 @@ func NewAccessControlResource(store AccessControlStore) *AccessControlResource {
 	}
 }
 
-func (rs *AccessControlResource) router(temp *UserResource) *chi.Mux {
+func (rs *AccessControlResource) router(config API) *chi.Mux {
 
 	r := chi.NewRouter()
 	authSession := []string{"admin", "labeler", "editor"}
 
-	authSessionmw := temp.basicAuthFactory(authSession)
+	authSessionmw := config.User.basicAuthFactory(authSession)
 
 	r.Group(func(r chi.Router) {
 		r.Use(authSessionmw)
 		//CRUD STANDARD
-		r.Post("/", rs.create)
-		r.Get("/{image_id}", rs.get)
-		r.Get("/", rs.getAll)
-		r.Put("/{image_id}", rs.update)
-		r.Delete("/{image_id}", rs.delete)
+		r.Post("/", config.createAC)
+		r.Get("/{image_id}", config.getAC)
+		r.Get("/", config.getAllAC)
+		r.Post("/", config.createAC)
+		r.Get("/requestaccess/{image_id}", config.requestAccess)
+		r.Put("/{image_id}", config.updateAC)
+		r.Delete("/{image_id}", config.deleteAC)
 	})
 	return r
 }
@@ -62,7 +67,7 @@ type accessControlRequest struct {
 	*models.AccessControl
 }
 
-func (rs *AccessControlResource) create(w http.ResponseWriter, r *http.Request) {
+func (rs *API) createAC(w http.ResponseWriter, r *http.Request) {
 
 	var accessControl models.AccessControl
 
@@ -73,7 +78,7 @@ func (rs *AccessControlResource) create(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	respAC, err := rs.Store.Create(&accessControl)
+	respAC, err := rs.AccessControl.Store.Create(&accessControl)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -83,7 +88,7 @@ func (rs *AccessControlResource) create(w http.ResponseWriter, r *http.Request) 
 	render.Respond(w, r, newGlobalResponse(respAC))
 }
 
-func (rs *AccessControlResource) get(w http.ResponseWriter, r *http.Request) {
+func (rs *API) getAC(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
 
@@ -94,7 +99,7 @@ func (rs *AccessControlResource) get(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(id, "AIIIDIIII")
 
-	respAC, err := rs.Store.Get(id)
+	respAC, err := rs.AccessControl.Store.Get(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -104,9 +109,9 @@ func (rs *AccessControlResource) get(w http.ResponseWriter, r *http.Request) {
 	render.Respond(w, r, newGlobalResponse(respAC))
 }
 
-func (rs *AccessControlResource) getAll(w http.ResponseWriter, r *http.Request) {
+func (rs *API) getAllAC(w http.ResponseWriter, r *http.Request) {
 
-	respAC, err := rs.Store.GetAll()
+	respAC, err := rs.AccessControl.Store.GetAll()
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -116,7 +121,81 @@ func (rs *AccessControlResource) getAll(w http.ResponseWriter, r *http.Request) 
 	render.Respond(w, r, newGlobalResponse(respAC))
 }
 
-func (rs *AccessControlResource) update(w http.ResponseWriter, r *http.Request) {
+func (rs *API) requestAccess(w http.ResponseWriter, r *http.Request) {
+
+	var accessgranted bool
+	var model models.AccessControl
+	var currentAC *models.AccessControl
+
+	accessgranted = false
+	imageid, err := strconv.Atoi(chi.URLParam(r, "image_id"))
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
+
+	user, err := rs.User.Store.GetByCookie(auth[1])
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	model.ImageID = imageid
+	model.Timeout = time.Now().Add(time.Minute * 3)
+	model.UserID = user.UserID
+
+	currentAC, err = rs.AccessControl.Store.Get(imageid)
+
+	if err != nil {
+		if !(err.Error() == "pg: no rows in result set") {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
+		currentAC, err = rs.AccessControl.Store.Create(&model)
+	}
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	if currentAC.Timeout.Before(time.Now()) {
+		//EXPIRED
+
+		_, err := rs.AccessControl.Store.Update(imageid, &model)
+
+		if err != nil {
+			render.Render(w, r, ErrRender(err))
+			return
+		}
+
+		accessgranted = true
+
+	} else {
+		//IN EFFECT
+		if currentAC.UserID == model.UserID {
+
+			_, err := rs.AccessControl.Store.Update(imageid, &model)
+
+			if err != nil {
+				render.Render(w, r, ErrRender(err))
+				return
+			}
+
+			accessgranted = true
+		} else {
+			accessgranted = false
+		}
+	}
+
+	render.Respond(w, r, newGlobalResponse(accessgranted))
+}
+
+func (rs *API) updateAC(w http.ResponseWriter, r *http.Request) {
 
 	var accessControl models.AccessControl
 
@@ -134,7 +213,7 @@ func (rs *AccessControlResource) update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	getAC, err := rs.Store.Get(id)
+	getAC, err := rs.AccessControl.Store.Get(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
@@ -149,7 +228,7 @@ func (rs *AccessControlResource) update(w http.ResponseWriter, r *http.Request) 
 		getAC.UserID = accessControl.UserID
 	}
 
-	respAC, err := rs.Store.Update(id, getAC)
+	respAC, err := rs.AccessControl.Store.Update(id, getAC)
 
 	if err != nil {
 		switch err.(type) {
@@ -164,7 +243,7 @@ func (rs *AccessControlResource) update(w http.ResponseWriter, r *http.Request) 
 	render.Respond(w, r, newGlobalResponse(respAC))
 }
 
-func (rs *AccessControlResource) delete(w http.ResponseWriter, r *http.Request) {
+func (rs *API) deleteAC(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(chi.URLParam(r, "image_id"))
 
@@ -173,7 +252,7 @@ func (rs *AccessControlResource) delete(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	respAC, err := rs.Store.Delete(id)
+	respAC, err := rs.AccessControl.Store.Delete(id)
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
