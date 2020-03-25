@@ -19,7 +19,7 @@ func NewAccessControlStore(db *pg.DB) *AccessControlStore {
 	}
 }
 
-//Create user
+//Create accesscontrol
 func (s *AccessControlStore) Create(a *models.AccessControl) (*models.AccessControl, error) {
 
 	err := s.db.Insert(a)
@@ -60,7 +60,7 @@ func (s *AccessControlStore) GetAll() (*[]models.AccessControl, error) {
 }
 
 // Update an AccessControl.
-func (s *vStore) Update(id int, a *models.AccessControl) (*models.v, error) {
+func (s *AccessControlStore) Update(id int, a *models.AccessControl) (*models.AccessControl, error) {
 	a.ImageID = id
 	err := s.db.Update(a)
 	if err != nil {

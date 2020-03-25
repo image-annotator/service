@@ -61,17 +61,17 @@ func NewAPI(db *pg.DB) (*API, error) {
 	contentStore := database.NewContentStore(db)
 	content := NewContentResource(contentStore)
 
-	accessControlStore := database.NewContentStore(db)
-	accessControl := NewContentResource(accessControlStore)
+	accessControlStore := database.NewAccessControlStore(db)
+	accessControl := NewAccessControlResource(accessControlStore)
 
 	api := &API{
-		Account: 		account,
-		Profile: 		profile,
-		User:    		user,
-		Image:   		image,
-		Label:   		label,
-		Content: 		content,
-		AccessControl:	accessControl,
+		Account:       account,
+		Profile:       profile,
+		User:          user,
+		Image:         image,
+		Label:         label,
+		Content:       content,
+		AccessControl: accessControl,
 	}
 	return api, nil
 }

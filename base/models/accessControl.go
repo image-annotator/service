@@ -1,18 +1,15 @@
 package models
 
 import (
-	"strings"
 	"time"
 
-	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/go-pg/pg/orm"
 )
 
 type AccessControl struct {
-	ImageID   int       `sql:"image_id,pk" json:"image_id"`
-	AccountID int       `json:"-"`
-	Timeout time.Time 	`json:"updated_at,omitempty"`
+	ImageID int       `sql:"image_id,pk" json:"image_id"`
+	UserID  int       `json:"user_id"`
+	Timeout time.Time `json:"timeout"`
 }
 
 // BeforeInsert hook executed before database insert operation.

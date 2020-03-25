@@ -38,7 +38,7 @@ func NewAccessControlResource(store AccessControlStore) *AccessControlResource {
 	}
 }
 
-func (rs *AccessControlResource) router(temp *AccessControlResource) *chi.Mux {
+func (rs *AccessControlResource) router(temp *UserResource) *chi.Mux {
 
 	r := chi.NewRouter()
 	authSession := []string{"admin", "labeler", "editor"}
@@ -132,12 +132,12 @@ func (rs *AccessControlResource) update(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if accessControl.Timeout != "" {
+	if &accessControl.Timeout != nil {
 		getAC.Timeout = accessControl.Timeout
 	}
 
-	if accessControl.AccountID != "" {
-		getAC.AccountID = accessControl.AccountID
+	if &accessControl.UserID != nil {
+		getAC.UserID = accessControl.UserID
 	}
 
 	respAC, err := rs.Store.Update(id, getAC)
