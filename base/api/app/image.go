@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -20,7 +21,7 @@ type ImageStore interface {
 	GetPerPage(page int, perpage int) (*[]models.Image, error)
 	Update(id int, a *models.Image) (*models.Image, error)
 	Delete(id int) (*models.Image, error)
-	GetAll() (*[]models.Image, error)
+	GetAll() (*[]models.Image, int, error)
 	GetByFilename(query string, page int, perpage int) (*[]models.Image, error)
 	Label(id int, a *models.Image) (*models.Image, error)
 	Unlabel(id int, a *models.Image) (*models.Image, error)
@@ -189,6 +190,16 @@ func (rs *ImageResource) getAll(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(len(PerPage), "PERPAGE")
 	fmt.Println(len(Page), "PAGE")
 
+	_, count, err := rs.Store.GetAll()
+
+	perPageInt, err := strconv.Atoi(PerPage[0])
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+	totalPage := math.Ceil(float64(count / perPageInt))
+
 	if (!ok || len(keys) < 1) && len(Page) == 1 && len(PerPage) == 1 {
 
 		curPage, err := strconv.Atoi(Page[0])
@@ -221,7 +232,7 @@ func (rs *ImageResource) getAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newGlobalResponse(images))
+	render.Respond(w, r, newGlobalResponse(newPaginationResponse(images, int(totalPage))))
 }
 
 //create dir

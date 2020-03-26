@@ -24,8 +24,18 @@ type globalResponse struct {
 	Status string      `json:"status"`
 }
 
+type paginationResponse struct {
+	Images    interface{} `json:"images"`
+	TotalPage int         `json:"total_page"`
+}
+
 func newGlobalResponse(a interface{}) *globalResponse {
 	resp := &globalResponse{Data: a, Status: "success"}
+	return resp
+}
+
+func newPaginationResponse(a interface{}, totalPage int) *paginationResponse {
+	resp := &paginationResponse{Images: a, TotalPage: totalPage}
 	return resp
 }
 
