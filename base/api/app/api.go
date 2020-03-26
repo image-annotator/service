@@ -2,7 +2,6 @@
 package app
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -25,19 +24,30 @@ type globalResponse struct {
 	Status string      `json:"status"`
 }
 
+type paginationResponse struct {
+	Images    interface{} `json:"images"`
+	TotalPage int         `json:"total_page"`
+}
+
 func newGlobalResponse(a interface{}) *globalResponse {
 	resp := &globalResponse{Data: a, Status: "success"}
 	return resp
 }
 
+func newPaginationResponse(a interface{}, totalPage int) *paginationResponse {
+	resp := &paginationResponse{Images: a, TotalPage: totalPage}
+	return resp
+}
+
 // API provides application resources and handlers.
 type API struct {
-	Account *AccountResource
-	Profile *ProfileResource
-	User    *UserResource
-	Image   *ImageResource
-	Label   *LabelResource
-	Content *ContentResource
+	Account       *AccountResource
+	Profile       *ProfileResource
+	User          *UserResource
+	Image         *ImageResource
+	Label         *LabelResource
+	Content       *ContentResource
+	AccessControl *AccessControlResource
 }
 
 // NewAPI configures and returns application API.
@@ -60,13 +70,17 @@ func NewAPI(db *pg.DB) (*API, error) {
 	contentStore := database.NewContentStore(db)
 	content := NewContentResource(contentStore)
 
+	accessControlStore := database.NewAccessControlStore(db)
+	accessControl := NewAccessControlResource(accessControlStore)
+
 	api := &API{
-		Account: account,
-		Profile: profile,
-		User:    user,
-		Image:   image,
-		Label:   label,
-		Content: content,
+		Account:       account,
+		Profile:       profile,
+		User:          user,
+		Image:         image,
+		Label:         label,
+		Content:       content,
+		AccessControl: accessControl,
 	}
 	return api, nil
 }
@@ -81,6 +95,7 @@ func (a *API) Router() *chi.Mux {
 	r.Mount("/image", a.Image.router(a.User))
 	r.Mount("/label", a.Label.router(*a))
 	r.Mount("/content", a.Content.router(a.User))
+	r.Mount("/accesscontrol", a.AccessControl.router(*a))
 	r.Get("/uploads/{imagepath}", getImage)
 
 	return r
@@ -89,8 +104,6 @@ func (a *API) Router() *chi.Mux {
 func getImage(w http.ResponseWriter, r *http.Request) {
 
 	imagepath := chi.URLParam(r, "imagepath")
-	fmt.Println("PEPEEGAAA")
-	fmt.Println(imagepath)
 	http.ServeFile(w, r, "uploads/"+imagepath)
 }
 

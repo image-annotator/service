@@ -60,17 +60,17 @@ func (s *ImageStore) GetPerPage(page int, perpage int) (*[]models.Image, error) 
 }
 
 // GetAll Image.
-func (s *ImageStore) GetAll() (*[]models.Image, error) {
+func (s *ImageStore) GetAll() (*[]models.Image, int, error) {
 
 	var images []models.Image
 
-	err := s.db.Model(&images).Select()
+	count, err := s.db.Model(&images).SelectAndCount()
 
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return &images, nil
+	return &images, count, nil
 }
 
 //Query image by filename
