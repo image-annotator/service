@@ -25,8 +25,9 @@ type globalResponse struct {
 }
 
 type paginationResponse struct {
-	Images    interface{} `json:"images"`
-	TotalPage int         `json:"total_page"`
+	Images     interface{} `json:"images"`
+	TotalPage  int         `json:"total_page"`
+	TotalImage int         `json:"total_image"`
 }
 
 func newGlobalResponse(a interface{}) *globalResponse {
@@ -34,8 +35,8 @@ func newGlobalResponse(a interface{}) *globalResponse {
 	return resp
 }
 
-func newPaginationResponse(a interface{}, totalPage int) *paginationResponse {
-	resp := &paginationResponse{Images: a, TotalPage: totalPage}
+func newPaginationResponse(a interface{}, totalPage int, count int) *paginationResponse {
+	resp := &paginationResponse{Images: a, TotalPage: totalPage, TotalImage: count}
 	return resp
 }
 

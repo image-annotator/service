@@ -39,6 +39,7 @@ created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 labeled boolean NOT NULL DEFAULT FALSE,
 image_path VARCHAR (100) NOT NULL UNIQUE,
+dataset VARCHAR (100) NOT NULL,
 file_name VARCHAR (100) NOT NULL,
 PRIMARY KEY (image_id)
 )`

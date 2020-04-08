@@ -78,11 +78,19 @@ func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
 	file, handler, err := r.FormFile("image")
 
 	if err != nil {
-		fmt.Println("Error Retrieving the Image")
-		fmt.Println(err)
+		render.Render(w, r, ErrRender(err))
 		return
 	}
+
 	defer file.Close()
+
+	datasetName := r.FormValue("dataset")
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
 	fmt.Printf("Uploaded Image: %+v\n", handler.Filename)
 	fmt.Printf("Image Size: %+v\n", handler.Size)
 	fmt.Printf("MIME Header: %+v\n", handler.Header)
@@ -96,7 +104,7 @@ func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
 
 	f, err := os.OpenFile(DirFilename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println(err)
+		render.Render(w, r, ErrRender(err))
 		return
 	}
 	defer f.Close()
@@ -106,6 +114,7 @@ func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
 
 	image.ImagePath = DirFilename
 	image.Filename = handler.Filename
+	image.Dataset = datasetName
 
 	respImage, err := rs.Store.Create(&image)
 
@@ -232,7 +241,7 @@ func (rs *ImageResource) getAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	render.Respond(w, r, newGlobalResponse(newPaginationResponse(images, int(totalPage))))
+	render.Respond(w, r, newGlobalResponse(newPaginationResponse(images, int(totalPage), count)))
 }
 
 //create dir
