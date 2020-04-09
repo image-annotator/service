@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/orm"
 	"gitlab.informatika.org/label-1-backend/base/models"
 )
 
@@ -85,6 +86,40 @@ func (s *ImageStore) GetByFilename(query string, page int, perpage int) (*[]mode
 	}
 
 	return &images, nil
+}
+
+func (s *ImageStore) GetByImage(query string, image *models.Image, keyok bool, labelok bool, dataok bool, page int, perpage int) (*[]models.Image, int, error) {
+
+	var images []models.Image
+	var count []models.Image
+
+	filter := func(q *orm.Query) (*orm.Query, error) {
+		if dataok {
+			q = q.Where("dataset = ?", image.Dataset)
+		}
+		if labelok {
+			q = q.Where("labeled = ?", image.Labeled)
+		}
+		if keyok {
+			q = q.Where("file_name LIKE ?", "%"+query+"%")
+		}
+
+		return q, nil
+	}
+
+	err := s.db.Model(&images).Apply(filter).Offset((page - 1) * perpage).Limit(perpage).Select()
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	countNum, err := s.db.Model(&count).Apply(filter).Count()
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return &images, countNum, nil
 }
 
 // Update a Image.
