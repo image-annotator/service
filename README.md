@@ -56,7 +56,17 @@ A step by step series of examples that tell you how to get a development env run
    ```
    ./base serve
    ```
-  
+   
+### Frequent Use Guide
+
+1. After a successful installation you only need to run this commands to run the database
+    ```
+   ./dbstart
+   ``` 
+2. and this command to run the server
+   ```
+   ./base serve
+   ```
 
 ## Built With
 
