@@ -59,11 +59,12 @@ A step by step series of examples that tell you how to get a development env run
    
 ### Frequent Use Guide
 
-1. After a successful installation you only need to run this commands to run the database
+1. After a successful installation you only need to run this command in ~/go/src/gitlab.informatika.org/label-1-backend/ to run the database
+   
     ```
    ./dbstart
    ``` 
-2. and this command to run the server
+2. and navigate into base directory and run this command to run the server
    ```
    ./base serve
    ```
