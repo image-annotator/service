@@ -15,7 +15,7 @@ import (
 func DBConn() (*pg.DB, error) {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Fatal("Error loading .env file ", err.Error())
 	}
 
 	dbaddr := os.Getenv("DB_ADDR")

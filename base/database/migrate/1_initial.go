@@ -37,7 +37,9 @@ CREATE TABLE images (
 image_id serial NOT NULL,
 created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
 updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+labeled boolean NOT NULL DEFAULT FALSE,
 image_path VARCHAR (100) NOT NULL UNIQUE,
+dataset VARCHAR (100) NOT NULL,
 file_name VARCHAR (100) NOT NULL,
 PRIMARY KEY (image_id)
 )`
@@ -75,7 +77,10 @@ CREATE TABLE contents
 (
     label_contents_id serial NOT NULL,
     content_name VARCHAR (50) NOT NULL,
-    PRIMARY KEY (label_contents_id)
+	created_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+	updated_at timestamp with time zone NOT NULL DEFAULT current_timestamp,
+    PRIMARY KEY (label_contents_id),
+    UNIQUE (content_name)
 )`
 
 const labelTable = `
@@ -104,7 +109,7 @@ CREATE TABLE labels
 const insertAdmin = `
 INSERT INTO users(
 	username, cookie, passcode, user_role)
-	VALUES ('adminone', 'dangfinebuttocks', 'password', 'admin') ON CONFLICT DO NOTHING;
+	VALUES ('adminone', 'admincookie', 'password', 'admin') ON CONFLICT DO NOTHING;
 `
 
 func init() {

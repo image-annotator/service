@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/orm"
 	"gitlab.informatika.org/label-1-backend/base/models"
 )
 
@@ -45,18 +46,80 @@ func (s *ImageStore) Get(id int) (*models.Image, error) {
 	return &a, nil
 }
 
-// GetAll Image.
-func (s *ImageStore) GetAll() (*[]models.Image, error) {
+// GetPerPage 20 Image by ID.
+func (s *ImageStore) GetPerPage(page int, perpage int) (*[]models.Image, error) {
 
 	var images []models.Image
 
-	err := s.db.Model(&images).Select()
+	err := s.db.Model(&images).Offset((page - 1) * perpage).Limit(perpage).Select()
 
 	if err != nil {
 		return nil, err
 	}
 
 	return &images, nil
+}
+
+// GetAll Image.
+func (s *ImageStore) GetAll() (*[]models.Image, int, error) {
+
+	var images []models.Image
+
+	count, err := s.db.Model(&images).SelectAndCount()
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return &images, count, nil
+}
+
+//Query image by filename
+func (s *ImageStore) GetByFilename(query string, page int, perpage int) (*[]models.Image, error) {
+
+	var images []models.Image
+
+	err := s.db.Model(&images).Where("file_name LIKE ?", "%"+query+"%").Offset((page - 1) * perpage).Limit(perpage).Select()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &images, nil
+}
+
+func (s *ImageStore) GetByImage(query string, image *models.Image, keyok bool, labelok bool, dataok bool, page int, perpage int) (*[]models.Image, int, error) {
+
+	var images []models.Image
+	var count []models.Image
+
+	filter := func(q *orm.Query) (*orm.Query, error) {
+		if dataok {
+			q = q.Where("dataset = ?", image.Dataset)
+		}
+		if labelok {
+			q = q.Where("labeled = ?", image.Labeled)
+		}
+		if keyok {
+			q = q.Where("file_name LIKE ?", "%"+query+"%")
+		}
+
+		return q, nil
+	}
+
+	err := s.db.Model(&images).Apply(filter).Offset((page - 1) * perpage).Limit(perpage).Select()
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	countNum, err := s.db.Model(&count).Apply(filter).Count()
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return &images, countNum, nil
 }
 
 // Update a Image.
@@ -66,6 +129,32 @@ func (s *ImageStore) Update(id int, a *models.Image) (*models.Image, error) {
 	if err != nil {
 		return nil, err
 	}
+	return a, nil
+}
+
+// Label a Image.
+func (s *ImageStore) Label(id int, a *models.Image) (*models.Image, error) {
+	a.ImageID = id
+	a.Labeled = true
+
+	err := s.db.Update(a)
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
+}
+
+// Unlabel a Image.
+func (s *ImageStore) Unlabel(id int, a *models.Image) (*models.Image, error) {
+	a.ImageID = id
+	a.Labeled = false
+
+	err := s.db.Update(a)
+	if err != nil {
+		return nil, err
+	}
+
 	return a, nil
 }
 

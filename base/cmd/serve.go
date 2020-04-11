@@ -3,9 +3,9 @@ package cmd
 import (
 	"log"
 
-	"gitlab.informatika.org/label-1-backend/base/api"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gitlab.informatika.org/label-1-backend/base/api"
 )
 
 // serveCmd represents the serve command
@@ -26,10 +26,10 @@ func init() {
 	RootCmd.AddCommand(serveCmd)
 
 	// Here you will define your flags and configuration settings.
-	viper.SetDefault("port", "localhost:3000")
+	viper.SetDefault("port", "localhost:8081")
 	viper.SetDefault("log_level", "debug")
 
-	viper.SetDefault("auth_login_url", "http://localhost:3000/login")
+	viper.SetDefault("auth_login_url", "http://localhost:8081/login")
 	viper.SetDefault("auth_login_token_length", 8)
 	viper.SetDefault("auth_login_token_expiry", "11m")
 	viper.SetDefault("auth_jwt_secret", "random")

@@ -1,8 +1,10 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"strconv"
@@ -17,9 +19,14 @@ import (
 type ImageStore interface {
 	Create(a *models.Image) (*models.Image, error)
 	Get(id int) (*models.Image, error)
+	GetPerPage(page int, perpage int) (*[]models.Image, error)
 	Update(id int, a *models.Image) (*models.Image, error)
 	Delete(id int) (*models.Image, error)
-	GetAll() (*[]models.Image, error)
+	GetAll() (*[]models.Image, int, error)
+	GetByFilename(query string, page int, perpage int) (*[]models.Image, error)
+	GetByImage(query string, image *models.Image, keyok bool, labelok bool, dataok bool, page int, perpage int) (*[]models.Image, int, error)
+	Label(id int, a *models.Image) (*models.Image, error)
+	Unlabel(id int, a *models.Image) (*models.Image, error)
 }
 
 // ImageResource implements image management handler.
@@ -55,6 +62,7 @@ func (rs *ImageResource) router(temp *UserResource) *chi.Mux {
 		r.Get("/{image_id}", rs.get)
 		r.Get("/", rs.getAll)
 		r.Get("/download/{image_id}", rs.download)
+		r.Get("/datasets", rs.getAllDatasetNames)
 		// r.Put("/{image_id}", rs.update)
 	})
 
@@ -73,11 +81,19 @@ func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
 	file, handler, err := r.FormFile("image")
 
 	if err != nil {
-		fmt.Println("Error Retrieving the Image")
-		fmt.Println(err)
+		render.Render(w, r, ErrRender(err))
 		return
 	}
+
 	defer file.Close()
+
+	datasetName := r.FormValue("dataset")
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
 	fmt.Printf("Uploaded Image: %+v\n", handler.Filename)
 	fmt.Printf("Image Size: %+v\n", handler.Size)
 	fmt.Printf("MIME Header: %+v\n", handler.Header)
@@ -91,7 +107,7 @@ func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
 
 	f, err := os.OpenFile(DirFilename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		fmt.Println(err)
+		render.Render(w, r, ErrRender(err))
 		return
 	}
 	defer f.Close()
@@ -101,6 +117,7 @@ func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
 
 	image.ImagePath = DirFilename
 	image.Filename = handler.Filename
+	image.Dataset = datasetName
 
 	respImage, err := rs.Store.Create(&image)
 
@@ -147,8 +164,6 @@ func (rs *ImageResource) delete(w http.ResponseWriter, r *http.Request) {
 
 	err = os.Remove(image.ImagePath)
 
-	fmt.Println("WRRRRRRRRRRRRRRRRRRRRRRRRY")
-	fmt.Println(image.ImagePath)
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
@@ -177,14 +192,89 @@ func (rs *ImageResource) get(w http.ResponseWriter, r *http.Request) {
 
 func (rs *ImageResource) getAll(w http.ResponseWriter, r *http.Request) {
 
-	images, err := rs.Store.GetAll()
+	Labeled, labelok := r.URL.Query()["Labeled"]
+	Dataset, dataok := r.URL.Query()["Dataset"]
+	Keys, keyok := r.URL.Query()["search"]
+	PerPage, _ := r.URL.Query()["PerPage"]
+	Page, _ := r.URL.Query()["Page"]
+
+	var images *[]models.Image
+
+	var err error
+	var isLabeled bool
+	var nameDataset string
+	var queryFilename string
+	var queryImage models.Image
+
+	curPage, err := strconv.Atoi(Page[0])
+	curPerPage, err := strconv.Atoi(PerPage[0])
+
+	if labelok {
+		fmt.Println("LABELOK")
+		if Labeled[0] == "False" || Labeled[0] == "false" {
+			isLabeled = false
+			queryImage.Labeled = isLabeled
+		} else if Labeled[0] == "True" || Labeled[0] == "true" {
+			isLabeled = true
+			queryImage.Labeled = isLabeled
+		} else {
+			render.Render(w, r, ErrRender(errors.New("PLEASE CHECK FOR LABELLING ERRORS")))
+			return
+		}
+
+	}
+
+	if dataok {
+		fmt.Println("DATAOK")
+		fmt.Println(Dataset)
+		nameDataset = Dataset[0]
+
+		queryImage.Dataset = nameDataset
+	}
+
+	if keyok {
+		fmt.Println(r.URL.Query())
+		queryFilename = Keys[0]
+	}
 
 	if err != nil {
 		render.Render(w, r, ErrRender(err))
 		return
 	}
 
-	render.Respond(w, r, newGlobalResponse(images))
+	images, count, err := rs.Store.GetByImage(queryFilename, &queryImage, keyok, labelok, dataok, curPage, curPerPage)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	//IMAGES POST PROCESSING//
+	fmt.Println("COUNT : ", count)
+
+	totalPage := math.Ceil((float64(count) / float64(curPerPage)))
+
+	render.Respond(w, r, newGlobalResponse(newPaginationResponse(images, int(totalPage), count)))
+}
+
+func (rs *ImageResource) getAllDatasetNames(w http.ResponseWriter, r *http.Request) {
+
+	var datasetNames []string
+
+	images, _, err := rs.Store.GetAll()
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	for _, elem := range *images {
+		if !stringInSlice(elem.Dataset, datasetNames) {
+			datasetNames = append(datasetNames, elem.Dataset)
+		}
+	}
+
+	render.Respond(w, r, newGlobalResponse(&datasetNames))
 }
 
 //create dir

@@ -9,16 +9,19 @@ import (
 	"github.com/go-pg/pg/orm"
 )
 
+//Image type struct
 type Image struct {
-	ImageID   int       `sql:"image_id,pk" json:"image_id"`
-	Filename  string    `sql:"file_name" json:"file_name"`
-	ImagePath string    `sql:"image_path" json:"image_path"`
-	CreatedAt time.Time `sql:"created_at" json:"created_at,omitempty"`
-	UpdatedAt time.Time `sql:"updated_at" json:"updated_at,omitempty"`
+	ImageID   int       `sql:"image_id,pk" 	 json:"image_id"`
+	Filename  string    `sql:"file_name" 	 json:"file_name"`
+	ImagePath string    `sql:"image_path" 	 json:"image_path"`
+	Dataset   string    `sql:"dataset" 	 	 json:"dataset"`
+	Labeled   bool      `sql:"labeled"		 json:"labeled"`
+	CreatedAt time.Time `sql:"created_at"	 json:"created_at,omitempty"`
+	UpdatedAt time.Time `sql:"updated_at"	 json:"updated_at,omitempty"`
 }
 
 // BeforeInsert hook executed before database insert operation.
-func (a *Image) BeforeInsert(db orm.DB) error {
+func (a *Image) BeforeInsertE(db orm.DB) error {
 	now := time.Now()
 	if a.CreatedAt.IsZero() {
 		a.CreatedAt = now
