@@ -109,7 +109,7 @@ CREATE TABLE labels
 const insertAdmin = `
 INSERT INTO users(
 	username, cookie, passcode, user_role)
-	VALUES ('adminone', 'dangfinebuttocks', 'password', 'admin') ON CONFLICT DO NOTHING;
+	VALUES ('adminone', 'admincookie', 'password', 'admin') ON CONFLICT DO NOTHING;
 `
 
 func init() {
