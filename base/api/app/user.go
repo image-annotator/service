@@ -85,6 +85,7 @@ func (rs *UserResource) router(temp *UserResource) *chi.Mux {
 
 	r.Group(func(r chi.Router) {
 		r.Use(authSessionmw)
+		r.Put("/changecredential/{cookie}", rs.updatebycookie)
 		r.Post("/validatesession", rs.getbycookie)
 		r.Get("/{user_id}", rs.get)
 		r.Get("/", rs.getAll)
@@ -212,6 +213,49 @@ func (rs *UserResource) update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respUser, err := rs.Store.Update(id, getUser)
+
+	if err != nil {
+		switch err.(type) {
+		case validation.Errors:
+			render.Render(w, r, ErrValidation(ErrUserValidation, err.(validation.Errors)))
+			return
+		}
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	render.Respond(w, r, newGlobalResponse(respUser))
+}
+
+func (rs *UserResource) updatebycookie(w http.ResponseWriter, r *http.Request) {
+
+	var user usermgmt.User
+
+	cookie := chi.URLParam(r, "cookie")
+
+	err := json.NewDecoder(r.Body).Decode(&user)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	getUser, err := rs.Store.GetByCookie(cookie)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	if user.Username != "" {
+		getUser.Username = user.Username
+	}
+
+	if user.Passcode != "" {
+		getUser.Passcode = user.Passcode
+	}
+
+	respUser, err := rs.Store.Update(getUser.UserID, getUser)
 
 	if err != nil {
 		switch err.(type) {
