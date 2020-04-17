@@ -1,6 +1,7 @@
 package app
 
 import (
+	"archive/zip"
 	"errors"
 	"fmt"
 	"io"
@@ -62,6 +63,7 @@ func (rs *ImageResource) router(temp *UserResource) *chi.Mux {
 		r.Get("/{image_id}", rs.get)
 		r.Get("/", rs.getAll)
 		r.Get("/download/{image_id}", rs.download)
+		r.Get("/downloadzip/{dataset_name}", rs.downloadZIP)
 		r.Get("/datasets", rs.getAllDatasetNames)
 		// r.Put("/{image_id}", rs.update)
 	})
@@ -119,6 +121,20 @@ func (rs *ImageResource) upload(w http.ResponseWriter, r *http.Request) {
 	image.Filename = handler.Filename
 	image.Dataset = datasetName
 
+	imagecheck, err := rs.Store.GetByFilename(image.Filename, 1, 10)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	for _, elem := range *imagecheck {
+		if elem.Dataset == image.Dataset {
+			render.Render(w, r, ErrRender(errors.New("Duplicate Image Found in the same dataset")))
+			return
+		}
+	}
+
 	respImage, err := rs.Store.Create(&image)
 
 	if err != nil {
@@ -145,6 +161,41 @@ func (rs *ImageResource) download(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.ServeFile(w, r, image.ImagePath)
+}
+
+func (rs *ImageResource) downloadZIP(w http.ResponseWriter, r *http.Request) {
+
+	var queryImage models.Image
+	var files []string
+
+	datasetName := chi.URLParam(r, "dataset_name")
+
+	queryImage.Dataset = datasetName
+
+	images, _, err := rs.Store.GetByImage("", &queryImage, false, false, true, 1, 100000)
+
+	for _, elem := range *images {
+		files = append(files, elem.ImagePath)
+	}
+
+	// List of Files to Zip
+	CreateDirIfNotExist("zip")
+
+	output := "zip/DATASET" + datasetName + ".zip"
+
+	if err := ZipFiles(output, files); err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	fmt.Println("Zipped File:", output)
+
+	if err != nil {
+		render.Render(w, r, ErrRender(err))
+		return
+	}
+
+	http.ServeFile(w, r, output)
 }
 
 func (rs *ImageResource) delete(w http.ResponseWriter, r *http.Request) {
@@ -285,4 +336,59 @@ func CreateDirIfNotExist(dir string) {
 			panic(err)
 		}
 	}
+}
+
+func ZipFiles(filename string, files []string) error {
+
+	newZipFile, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer newZipFile.Close()
+
+	zipWriter := zip.NewWriter(newZipFile)
+	defer zipWriter.Close()
+
+	// Add files to zip
+	for _, file := range files {
+		if err = AddFileToZip(zipWriter, file); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func AddFileToZip(zipWriter *zip.Writer, filename string) error {
+
+	fileToZip, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer fileToZip.Close()
+
+	// Get the file information
+	info, err := fileToZip.Stat()
+	if err != nil {
+		return err
+	}
+
+	header, err := zip.FileInfoHeader(info)
+	if err != nil {
+		return err
+	}
+
+	// Using FileInfoHeader() above only uses the basename of the file. If we want
+	// to preserve the folder structure we can overwrite this with the full path.
+	header.Name = filename
+
+	// Change to deflate to gain better compression
+	// see http://golang.org/pkg/archive/zip/#pkg-constants
+	header.Method = zip.Deflate
+
+	writer, err := zipWriter.CreateHeader(header)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(writer, fileToZip)
+	return err
 }
